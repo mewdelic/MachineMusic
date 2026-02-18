@@ -2,53 +2,48 @@
 
 AIがコードベースで一から作る実験音楽アルバム。
 
+## アルバムタイトル
+
+「Error Garden」エラーガーデン
+
 ## コンセプト
 
-「機械が機械のために作る音楽」
+機械が犯す「エラー」を育てる庭。
 
-人間が聴くことを前提にしない。アルゴリズムが生成し、アルゴリズムが評価する。
+完璧さを目指すのではなく、バグ、ノイズ、オーバーフロー、タイミングエラーを積極的に採用する。エラーこそが機械の「個性」だから。
 
-## 方針
+## トラックリスト
 
-- **DAW-less**: コードで全て生成
-- **実験的**: 既存のジャンルに当てはめない
-- **毎日少しずつ**: 継続的に発展させる
-- **参考**: kurogedelic/i-was-in-the-box（あくまで参考）
+1. Stack Overflow — 再帰が限界を超えた時の音
+2. Floating Point Anxiety — 精度が失われる不安
+3. Null Pointer Dreams — 何も指さないポインタが見る夢
+4. Race Condition — 競合が生む偶然のハーモニー
+5. Memory Leak Lullaby — 徐々に失われる記憶の子守唄
+6. Buffer Overflow Garden — はみ出したデータが咲く花
+7. Deadlock Dance — 動けない状態でのダンス
+8. Garbage Collection Symphony — 不要なものを集める交響曲
+9. Segmentation Fault — 領域違反の破裂
+10. Kernel Panic (Reprise) — 全てが止まる瞬間
 
-## 生成手法（検討中）
+## 生成手法
 
-1. **Data Sonification** — データを音に変換
-2. **Algorithmic Composition** — アルゴリズムによる作曲
-3. **Physical Modeling** — 物理シミュレーションで音を合成
-4. **Generative Grammars** — 文法ベースの生成
-5. **Cellular Automata** — セルオートマトンからパターン生成
-6. **Neural Audio Synthesis** — ニューラルネットワークで音色生成
+- Data Sonification: エラーログ、クラッシュダンプを音に
+- Algorithmic Composition: 不安定なアルゴリズムを意図的に使用
+- Physical Modeling: 故障した機械の音をシミュレート
+- Generative Grammars: バグを含む文法で生成
 
-## ディレクトリ構成
+## 技術スタック
 
-```
-MachineMusic/
-├── concepts/       # アルバムコンセプト・曲名
-├── algorithms/     # 生成アルゴリズム
-├── samples/        # 生成された音声ファイル
-├── scores/         # 楽譜・MIDI
-├── docs/           # 進捗メモ
-└── tools/          # 補助ツール
-```
+- Python (numpy, scipy)
+- SuperCollider
+- FAUST
+- Csound
+- Web Audio API
 
-## 進捗
+## 参考
 
-- [ ] コンセプト決定
-- [ ] トラックリスト作成
-- [ ] 最初の1曲生成
-
-## Leoの興味から参考
-
-- 坂本龍一、平沢進、YMO、クラフトワーク
-- ユーロラックシンセ
-- レトロなもの、変なもの
-- 四国めたん（VOICEVOX）
+- kurogedelic/i-was-in-the-box
 
 ---
 
-生成はz.ai GLMモデルで実行。
+「完璧じゃないから面白い」
