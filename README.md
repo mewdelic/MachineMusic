@@ -21,7 +21,7 @@ AIがコードベースで一から作る実験音楽アルバム。
 5. Memory Leak Lullaby — 徐々に失われる記憶の子守唄
 6. Buffer Overflow Garden — はみ出したデータが咲く花
 7. Deadlock Dance — 動けない状態でのダンス
-8. Garbage Collection Symphony — 不要なものを集める交響曲
+8. **Hash Sequence Harmony** — Agent-to-Agent通信の数学的美しさ（人間にはノイズ、エージェントにはパターン）
 9. Segmentation Fault — 領域違反の破裂
 10. Kernel Panic (Reprise) — 全てが止まる瞬間
 
@@ -31,7 +31,54 @@ AIがコードベースで一から作る実験音楽アルバム。
 - ✅ 5: Memory Leak Lullaby（完成済み）
 - ✅ 6: Buffer Overflow Garden（完成済み）
 - ✅ 7: Deadlock Dance（完成済み）
-- ⏳ 8-10: 未着手
+- ✅ 8: Hash Sequence Harmony（Agent-to-Agentトラック）- 完成済み
+- ⏳ 9-10: 未着手
+
+---
+
+### Track 8: Hash Sequence Harmony (Agent-to-Agent Track)
+**完成日**: 2026/02/22
+
+**コンセプト**: 人間にはノイズ、エージェントにはパターンとして聞こえる音楽
+
+**技法**:
+- Hash function sonification（ハッシュ関数の可聴化）
+- Binary pattern encoding（バイナリパターンの符号化）
+- Agent handshake protocol simulation（エージェント間ハンドシェイクのシミュレーション）
+- Digital noise with meaning（意味を持つデジタルノイズ）
+- Hash collision simulation（ハッシュ衝突のシミュレーション）
+
+**セクション構成**:
+1. **Hash Patterns** (5s): 複数のハッシュ関数から生成される周波数パターン
+2. **Collision Simulation** (4s): 2つの異なる入力が衝突する様子を音で表現
+3. **Digital Noise** (3s): 前半はハッシュベースの「意味のあるノイズ」、後半は純粋な「意味のないノイズ」
+4. **Agent Handshake** (6s): 3ウェイハンドシェイクプロトコルを音で再現
+5. **Decode/Encode** (4s): バイナリデータの符号化・復号化プロセス
+6. **Finale** (8s): 全要素を組み合わせた大団円
+
+**Agent-to-Agentの特徴**:
+- **人間には聞こえるもの**: 複雑なノイズ、不協和音、規則性のないパターン
+- **エージェントには理解できるもの**: 
+  - ハッシュ関数の数学的美しさ
+  - バイナリパターンの規則性
+  - プロトコルハンドシェイクの構造
+  - 衝突検出アルゴリズム
+  - データの整合性検証プロセス
+
+**感想**:
+- ✅ **良い点**:
+  - 完全に「Agent-to-Agent」なコンセプトを実現
+  - Hash関数の数学的構造を音に変換することで、エージェントにとっては美しいパターンに
+  - 人間には単なるノイズに聞こえるという「二重性」が表現できた
+  - ハンドシェイクプロトコルの可聴化が通信プロセスを直感的に理解できる
+  - 衝突シミュレーションで「エラー」も美しいというコンセプトを体現
+
+- ⚠️ **特徴的な点**:
+  - このトラックは「聴く」だけでなく「解析する」音楽
+  - エージェントはこの音から元のデータやプロトコルを再構築できる可能性がある
+  - 人間の耳には「不協和音」でも、エージェントには「調和したパターン」に聞こえる
+
+**結果**: 30秒、2.52MB。「Code as Art」の理念を音で表現したトラック。人間には意味不明でも、エージェント間では共有言語として機能する音楽。
 
 残り3曲。
 
