@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MachineMusic - Error Garden (Web Audio API)</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a0a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .error-garden {
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #00cc00;
+            font-style: italic;
+        }
+        
+        .tracks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .track-card {
+            border: 1px solid #00ff00;
+            padding: 15px;
+            background-color: rgba(0, 255, 0, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .track-card:hover {
+            background-color: rgba(0, 255, 0, 0.15);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .track-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #00ff00;
+        }
+        
+        .track-description {
+            font-size: 0.9em;
+            color: #00cc00;
+            margin-bottom: 15px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background-color: #003300;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #00ff00;
+            color: #003300;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .parameter {
+            margin-bottom: 10px;
+        }
+        
+        .parameter label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .parameter input[type="range"] {
+            width: 100%;
+            background-color: #003300;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .parameter input[type="range"]:hover {
+            opacity: 1;
+        }
+        
+        .visualization {
+            width: 100%;
+            height: 100px;
+            border: 1px solid #00ff00;
+            background-color: rgba(0, 255, 0, 0.1);
+            margin-top: 15px;
+        }
+        
+        .master-controls {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .info-panel {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #00ff00;
+            background-color: rgba(0, 255, 0, 0.05);
+        }
+        
+        .active {
+            background-color: rgba(0, 255, 0, 0.25) !important;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5) !important;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="error-garden">ERROR GARDEN</div>
+            <div class="subtitle">MachineMusic - Web Audio API Interactive Edition</div>
+            <div style="margin-top: 10px; font-size: 0.9em;">
+                "Where code errors become musical beauty"
+            </div>
+        </div>
+        
+        <div class="master-controls">
+            <h3>Master Controls</h3>
+            <div class="controls">
+                <button id="playAll">Play All</button>
+                <button id="stopAll">Stop All</button>
+                <button id="masterVolume">Master Volume: 50%</button>
+            </div>
+            <div class="parameter">
+                <label>Master Volume</label>
+                <input type="range" id="masterVolumeSlider" min="0" max="100" value="50">
+            </div>
+        </div>
+        
+        <div class="tracks-grid" id="tracksGrid">
+            <!-- Track cards will be generated by JavaScript -->
+        </div>
+        
+        <div class="info-panel">
+            <h3>About Error Garden</h3>
+            <p>Error Garden is an experimental music album that transforms software system errors into musical compositions. Using Data Sonification and Algorithmic Composition, each track represents a different type of programming error, turning technical "failures" into aesthetic experiences.</p>
+            <p><strong>Techniques:</strong> Data Sonification, Algorithmic Composition, Physical Modeling, Generative Grammars</p>
+            <p><strong>Technology:</strong> Web Audio API, Python, SuperCollider, FAUST, Csound</p>
+        </div>
+    </div>
+
+    <script>
+        // Audio context and master controls
+        let audioContext;
+        let masterGain;
+        let isInitialized = false;
+        let activeTracks = new Set();
+        
+        // Track definitions with Web Audio API algorithms
+        const tracks = [
+            {
+                id: 'stack_overflow',
+                title: 'Stack Overflow',
+                description: 'When recursion exceeds its limits',
+                algorithm: 'stackOverflow',
+                parameters: {
+                    frequency: { min: 100, max: 800, default: 440, label: 'Base Frequency' },
+                    decay: { min: 0.1, max: 2.0, default: 0.5, label: 'Decay Time' },
+                    iterations: { min: 3, max: 10, default: 6, label: 'Recursion Depth' }
+                }
+            },
+            {
+                id: 'floating_point_anxiety',
+                title: 'Floating Point Anxiety',
+                description: 'The anxiety of precision loss',
+                algorithm: 'floatingPointAnxiety',
+                parameters: {
+                    frequency: { min: 50, max: 500, default: 200, label: 'Base Frequency' },
+                    precision: { min: 1, max: 32, default: 8, label: 'Precision Bits' },
+                    anxiety: { min: 0.1, max: 1.0, default: 0.5, label: 'Anxiety Level' }
+                }
+            },
+            {
+                id: 'null_pointer_dreams',
+                title: 'Null Pointer Dreams',
+                description: 'Dreams of pointers pointing to nothing',
+                algorithm: 'nullPointerDreams',
+                parameters: {
+                    frequency: { min: 80, max: 400, default: 220, label: 'Dream Frequency' },
+                    voidness: { min: 0.1, max: 1.0, default: 0.7, label: 'Void Level' },
+                    resonance: { min: 0.1, max: 5.0, default: 2.0, label: 'Resonance' }
+                }
+            },
+            {
+                id: 'race_condition',
+                title: 'Race Condition',
+                description: 'Harmony born from competition',
+                algorithm: 'raceCondition',
+                parameters: {
+                    frequency1: { min: 100, max: 600, default: 330, label: 'Thread 1 Freq' },
+                    frequency2: { min: 100, max: 600, default: 440, label: 'Thread 2 Freq' },
+                    speed: { min: 0.5, max: 5.0, default: 2.0, label: 'Race Speed' }
+                }
+            },
+            {
+                id: 'memory_leak_lullaby',
+                title: 'Memory Leak Lullaby',
+                description: 'A lullaby of gradually lost memory',
+                algorithm: 'memoryLeak',
+                parameters: {
+                    frequency: { min: 60, max: 300, default: 150, label: 'Lullaby Freq' },
+                    leakRate: { min: 0.001, max: 0.1, default: 0.01, label: 'Leak Rate' },
+                    capacity: { min: 100, max: 1000, default: 500, label: 'Memory Capacity' }
+                }
+            },
+            {
+                id: 'buffer_overflow_garden',
+                title: 'Buffer Overflow Garden',
+                description: 'Flowers blooming from overflowed data',
+                algorithm: 'bufferOverflow',
+                parameters: {
+                    frequency: { min: 200, max: 800, default: 440, label: 'Base Freq' },
+                    bufferSize: { min: 4, max: 16, default: 8, label: 'Buffer Size' },
+                    overflowAmount: { min: 1, max: 10, default: 3, label: 'Overflow Amount' }
+                }
+            },
+            {
+                id: 'deadlock_dance',
+                title: 'Deadlock Dance',
+                description: 'Dance while completely stuck',
+                algorithm: 'deadlock',
+                parameters: {
+                    frequency: { min: 80, max: 300, default: 120, label: 'Dance Freq' },
+                    stuckness: { min: 0.1, max: 1.0, default: 0.8, label: 'Stuck Level' },
+                    struggle: { min: 0.5, max: 3.0, default: 1.5, label: 'Struggle Intensity' }
+                }
+            },
+            {
+                id: 'hash_sequence_harmony',
+                title: 'Hash Sequence Harmony',
+                description: 'Mathematical beauty of agent communication',
+                algorithm: 'hashSequence',
+                parameters: {
+                    frequency: { min: 100, max: 500, default: 261.63, label: 'Base Freq' },
+                    hashLength: { min: 8, max: 64, default: 32, label: 'Hash Length' },
+                    complexity: { min: 1, max: 10, default: 5, label: 'Complexity' }
+                }
+            },
+            {
+                id: 'segmentation_fault',
+                title: 'Segmentation Fault',
+                description: 'The beautiful explosion of memory violation',
+                algorithm: 'segmentationFault',
+                parameters: {
+                    frequency: { min: 500, max: 2000, default: 1000, label: 'Explosion Freq' },
+                    intensity: { min: 0.1, max: 1.0, default: 0.7, label: 'Explosion Intensity' },
+                    fragments: { min: 3, max: 12, default: 6, label: 'Memory Fragments' }
+                }
+            },
+            {
+                id: 'kernel_panic',
+                title: 'Kernel Panic (Reprise)',
+                description: 'The moment when everything stops',
+                algorithm: 'kernelPanic',
+                parameters: {
+                    frequency: { min: 50, max: 200, default: 80, label: 'Panic Freq' },
+                    severity: { min: 1, max: 5, default: 3, label: 'Panic Severity' },
+                    shutdownTime: { min: 1, max: 10, default: 5, label: 'Shutdown Time' }
+                }
+            }
+        ];
+        
+        // Initialize audio context
+        function initAudio() {
+            if (!isInitialized) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioContext.createGain();
+                masterGain.connect(audioContext.destination);
+                masterGain.gain.value = 0.5;
+                isInitialized = true;
+            }
+        }
+        
+        // Track class for managing individual tracks
+        class Track {
+            constructor(trackData) {
+                this.id = trackData.id;
+                this.title = trackData.title;
+                this.description = trackData.description;
+                this.algorithm = trackData.algorithm;
+                this.parameters = trackData.parameters;
+                this.isPlaying = false;
+                this.oscillators = [];
+                this.gainNodes = [];
+                this.analysers = [];
+            }
+            
+            start() {
+                if (this.isPlaying) return;
+                
+                initAudio();
+                this.isPlaying = true;
+                
+                switch (this.algorithm) {
+                    case 'stackOverflow':
+                        this.playStackOverflow();
+                        break;
+                    case 'floatingPointAnxiety':
+                        this.playFloatingPointAnxiety();
+                        break;
+                    case 'nullPointerDreams':
+                        this.playNullPointerDreams();
+                        break;
+                    case 'raceCondition':
+                        this.playRaceCondition();
+                        break;
+                    case 'memoryLeak':
+                        this.playMemoryLeak();
+                        break;
+                    case 'bufferOverflow':
+                        this.playBufferOverflow();
+                        break;
+                    case 'deadlock':
+                        this.playDeadlock();
+                        break;
+                    case 'hashSequence':
+                        this.playHashSequence();
+                        break;
+                    case 'segmentationFault':
+                        this.playSegmentationFault();
+                        break;
+                    case 'kernelPanic':
+                        this.playKernelPanic();
+                        break;
+                }
+            }
+            
+            stop() {
+                if (!this.isPlaying) return;
+                
+                this.isPlaying = false;
+                
+                // Stop all oscillators
+                this.oscillators.forEach(osc => {
+                    try {
+                        osc.stop();
+                        osc.disconnect();
+                    } catch (e) {
+                        // Oscillator might already be stopped
+                    }
+                });
+                
+                // Clear arrays
+                this.oscillators = [];
+                this.gainNodes = [];
+                this.analysers = [];
+            }
+            
+            getParameterValue(paramName) {
+                const input = document.getElementById(`${this.id}_${paramName}`);
+                return input ? parseFloat(input.value) : this.parameters[paramName].default;
+            }
+            
+            playStackOverflow() {
+                const freq = this.getParameterValue('frequency');
+                const decay = this.getParameterValue('decay');
+                const iterations = Math.floor(this.getParameterValue('iterations'));
+                
+                for (let i = 0; i < iterations; i++) {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    const analyser = audioContext.createAnalyser();
+                    
+                    osc.frequency.value = freq * Math.pow(2, i / 12);
+                    osc.type = 'sawtooth';
+                    
+                    gain.gain.value = Math.exp(-i * decay / iterations);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + decay);
+                    
+                    osc.connect(gain);
+                    gain.connect(analyser);
+                    analyser.connect(masterGain);
+                    
+                    osc.start(audioContext.currentTime + i * 0.1);
+                    
+                    this.oscillators.push(osc);
+                    this.gainNodes.push(gain);
+                    this.analysers.push(analyser);
+                }
+                
+                // Stop after total duration
+                setTimeout(() => {
+                    if (this.isPlaying) {
+                        this.stop();
+                        if (activeTracks.has(this.id)) {
+                            this.start(); // Loop
+                        }
+                    }
+                }, (iterations * 0.1 + decay * 2) * 1000);
+            }
+            
+            playFloatingPointAnxiety() {
+                const freq = this.getParameterValue('frequency');
+                const precision = this.getParameterValue('precision');
+                const anxiety = this.getParameterValue('anxiety');
+                
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const analyser = audioContext.createAnalyser();
+                
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                
+                // Create floating point-like artifacts
+                const lfo = audioContext.createOscillator();
+                const lfoGain = audioContext.createGain();
+                
+                lfo.frequency.value = anxiety * 10;
+                lfoGain.gain.value = freq * 0.1 / precision;
+                
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+                
+                gain.gain.value = 0.3;
+                
+                osc.connect(gain);
+                gain.connect(analyser);
+                analyser.connect(masterGain);
+                
+                osc.start();
+                lfo.start();
+                
+                this.oscillators.push(osc, lfo);
+                this.gainNodes.push(gain, lfoGain);
+                this.analysers.push(analyser);
+            }
+            
+            playNullPointerDreams() {
+                const freq = this.getParameterValue('frequency');
+                const voidness = this.getParameterValue('voidness');
+                const resonance = this.getParameterValue('resonance');
+                
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const filter = audioContext.createBiquadFilter();
+                const analyser = audioContext.createAnalyser();
+                
+                osc.frequency.value = freq;
+                osc.type = 'triangle';
+                
+                filter.frequency.value = freq * 2;
+                filter.Q.value = resonance;
+                filter.type = 'bandpass';
+                
+                gain.gain.value = 0.2 * (1 - voidness);
+                
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(analyser);
+                analyser.connect(masterGain);
+                
+                osc.start();
+                
+                // Create void-like silence pulses
+                const voidOsc = audioContext.createOscillator();
+                const voidGain = audioContext.createGain();
+                
+                voidOsc.frequency.value = 0.5; // Very slow
+                voidGain.gain.value = voidness * 0.5;
+                
+                voidOsc.connect(voidGain);
+                voidGain.connect(gain.gain);
+                
+                voidOsc.start();
+                
+                this.oscillators.push(osc, voidOsc);
+                this.gainNodes.push(gain, voidGain);
+                this.analysers.push(analyser);
+            }
+            
+            playRaceCondition() {
+                const freq1 = this.getParameterValue('frequency1');
+                const freq2 = this.getParameterValue('frequency2');
+                const speed = this.getParameterValue('speed');
+                
+                const osc1 = audioContext.createOscillator();
+                const osc2 = audioContext.createOscillator();
+                const gain1 = audioContext.createGain();
+                const gain2 = audioContext.createGain();
+                const analyser = audioContext.createAnalyser();
+                
+                osc1.frequency.value = freq1;
+                osc2.frequency.value = freq2;
+                osc1.type = 'square';
+                osc2.type = 'sawtooth';
+                
+                gain1.gain.value = 0.2;
+                gain2.gain.value = 0.2;
+                
+                // Race condition - frequencies compete
+                const competitionLfo = audioContext.createOscillator();
+                const competitionGain = audioContext.createGain();
+                
+                competitionLfo.frequency.value = speed;
+                competitionGain.gain.value = 50;
+                
+                competitionLfo.connect(competitionGain);
+                competitionGain.connect(osc1.frequency);
+                competitionGain.connect(osc2.frequency, gainNode => {
+                    gainNode.gain.value = -50;
+                });
+                
+                osc1.connect(gain1);
+                osc2.connect(gain2);
+                gain1.connect(analyser);
+                gain2.connect(analyser);
+                analyser.connect(masterGain);
+                
+                osc1.start();
+                osc2.start();
+                competitionLfo.start();
+                
+                this.oscillators.push(osc1, osc2, competitionLfo);
+                this.gainNodes.push(gain1, gain2, competitionGain);
+                this.analysers.push(analyser);
+            }
+            
+            playMemoryLeak() {
+                const freq = this.getParameterValue('frequency');
+                const leakRate = this.getParameterValue('leakRate');
+                const capacity = this.getParameterValue('capacity');
+                
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const analyser = audioContext.createAnalyser();
+                
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                
+                gain.gain.value = 0.3;
+                
+                // Memory leak simulation
+                let memory = 0;
+                const leakInterval = setInterval(() => {
+                    if (!this.isPlaying) {
+                        clearInterval(leakInterval);
+                        return;
+                    }
+                    
+                    memory += leakRate;
+                    if (memory > capacity) {
+                        memory = capacity;
+                        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 2);
+                    } else {
+                        gain.gain.value = 0.3 * (1 - memory / capacity);
+                    }
+                }, 100);
+                
+                osc.connect(gain);
+                gain.connect(analyser);
+                analyser.connect(masterGain);
+                
+                osc.start();
+                
+                this.oscillators.push(osc);
+                this.gainNodes.push(gain);
+                this.analysers.push(analyser);
+                this.leakInterval = leakInterval;
+            }
+            
+            playBufferOverflow() {
+                const freq = this.getParameterValue('frequency');
+                const bufferSize = Math.floor(this.getParameterValue('bufferSize'));
+                const overflowAmount = Math.floor(this.getParameterValue('overflowAmount'));
+                
+                for (let i = 0; i < bufferSize + overflowAmount; i++) {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    const analyser = audioContext.createAnalyser();
+                    
+                    osc.frequency.value = freq * (1 + i * 0.1);
+                    osc.type = i < bufferSize ? 'sine' : 'square'; // Overflow changes waveform
+                    
+                    gain.gain.value = i < bufferSize ? 0.1 : 0.2; // Overflow is louder
+                    
+                    osc.connect(gain);
+                    gain.connect(analyser);
+                    analyser.connect(masterGain);
+                    
+                    osc.start(audioContext.currentTime + i * 0.05);
+                    
+                    this.oscillators.push(osc);
+                    this.gainNodes.push(gain);
+                    this.analysers.push(analyser);
+                }
+                
+                // Stop and restart
+                setTimeout(() => {
+                    if (this.isPlaying) {
+                        this.stop();
+                        if (activeTracks.has(this.id)) {
+                            this.start();
+                        }
+                    }
+                }, 3000);
+            }
+            
+            playDeadlock() {
+                const freq = this.getParameterValue('frequency');
+                const stuckness = this.getParameterValue('stuckness');
+                const struggle = this.getParameterValue('struggle');
+                
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const analyser = audioContext.createAnalyser();
+                
+                osc.frequency.value = freq;
+                osc.type = 'triangle';
+                
+                gain.gain.value = 0.2 * (1 - stuckness);
+                
+                // Struggle attempts
+                const struggleOsc = audioContext.createOscillator();
+                const struggleGain = audioContext.createGain();
+                
+                struggleOsc.frequency.value = freq * 2;
+                struggleOsc.type = 'sawtooth';
+                
+                struggleGain.gain.value = struggle * 0.1;
+                
+                // Deadlock - stuckness prevents struggle
+                const deadlockLfo = audioContext.createOscillator();
+                const deadlockGain = audioContext.createGain();
+                
+                deadlockLfo.frequency.value = 0.1; // Very slow
+                deadlockGain.gain.value = stuckness;
+                
+                deadlockLfo.connect(deadlockGain);
+                deadlockGain.connect(struggleGain.gain);
+                
+                osc.connect(gain);
+                struggleOsc.connect(struggleGain);
+                gain.connect(analyser);
+                struggleGain.connect(analyser);
+                analyser.connect(masterGain);
+                
+                osc.start();
+                struggleOsc.start();
+                deadlockLfo.start();
+                
+                this.oscillators.push(osc, struggleOsc, deadlockLfo);
+                this.gainNodes.push(gain, struggleGain, deadlockGain);
+                this.analysers.push(analyser);
+            }
+            
+            playHashSequence() {
+                const freq = this.getParameterValue('frequency');
+                const hashLength = Math.floor(this.getParameterValue('hashLength'));
+                const complexity = this.getParameterValue('complexity');
+                
+                // Generate hash-like frequencies
+                const hashFrequencies = [];
+                let hash = Math.floor(freq * 1000);
+                
+                for (let i = 0; i < hashLength; i++) {
+                    hash = (hash * 31 + i) % 10000;
+                    hashFrequencies.push(100 + hash % 1000);
+                }
+                
+                // Play selected frequencies based on complexity
+                for (let i = 0; i < Math.min(complexity, hashFrequencies.length); i++) {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    const analyser = audioContext.createAnalyser();
+                    
+                    osc.frequency.value = hashFrequencies[i];
+                    osc.type = 'sine';
+                    
+                    gain.gain.value = 0.1;
+                    
+                    osc.connect(gain);
+                    gain.connect(analyser);
+                    analyser.connect(masterGain);
+                    
+                    osc.start(audioContext.currentTime + i * 0.1);
+                    
+                    this.oscillators.push(osc);
+                    this.gainNodes.push(gain);
+                    this.analysers.push(analyser);
+                }
+            }
+            
+            playSegmentationFault() {
+                const freq = this.getParameterValue('frequency');
+                const intensity = this.getParameterValue('intensity');
+                const fragments = Math.floor(this.getParameterValue('fragments'));
+                
+                // Create explosion effect
+                for (let i = 0; i < fragments; i++) {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    const analyser = audioContext.createAnalyser();
+                    
+                    osc.frequency.value = freq * (0.5 + Math.random());
+                    osc.type = 'square';
+                    
+                    gain.gain.value = intensity * 0.3;
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                    
+                    osc.connect(gain);
+                    gain.connect(analyser);
+                    analyser.connect(masterGain);
+                    
+                    osc.start(audioContext.currentTime + i * 0.05);
+                    
+                    this.oscillators.push(osc);
+                    this.gainNodes.push(gain);
+                    this.analysers.push(analyser);
+                }
+                
+                // Noise component
+                const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.5, audioContext.sampleRate);
+                const noiseData = noiseBuffer.getChannelData(0);
+                
+                for (let i = 0; i < noiseData.length; i++) {
+                    noiseData[i] = Math.random() * 2 - 1;
+                }
+                
+                const noise = audioContext.createBufferSource();
+                const noiseGain = audioContext.createGain();
+                const noiseAnalyser = audioContext.createAnalyser();
+                
+                noise.buffer = noiseBuffer;
+                noiseGain.gain.value = intensity * 0.1;
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                
+                noise.connect(noiseGain);
+                noiseGain.connect(noiseAnalyser);
+                noiseAnalyser.connect(masterGain);
+                
+                noise.start();
+                
+                this.oscillators.push(noise);
+                this.gainNodes.push(noiseGain);
+                this.analysers.push(noiseAnalyser);
+                
+                // Restart after explosion
+                setTimeout(() => {
+                    if (this.isPlaying) {
+                        this.stop();
+                        if (activeTracks.has(this.id)) {
+                            this.start();
+                        }
+                    }
+                }, 2000);
+            }
+            
+            playKernelPanic() {
+                const freq = this.getParameterValue('frequency');
+                const severity = this.getParameterValue('severity');
+                const shutdownTime = this.getParameterValue('shutdownTime');
+                
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const filter = audioContext.createBiquadFilter();
+                const analyser = audioContext.createAnalyser();
+                
+                osc.frequency.value = freq;
+                osc.type = 'sawtooth';
+                
+                filter.frequency.value = freq * 4;
+                filter.Q.value = severity;
+                filter.type = 'lowpass';
+                
+                gain.gain.value = 0.3;
+                
+                // Shutdown process
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + shutdownTime);
+                filter.frequency.exponentialRampToValueAtTime(10, audioContext.currentTime + shutdownTime);
+                
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(analyser);
+                analyser.connect(masterGain);
+                
+                osc.start();
+                
+                this.oscillators.push(osc);
+                this.gainNodes.push(gain);
+                this.analysers.push(analyser);
+                
+                // Restart after shutdown
+                setTimeout(() => {
+                    if (this.isPlaying) {
+                        this.stop();
+                        if (activeTracks.has(this.id)) {
+                            this.start();
+                        }
+                    }
+                }, shutdownTime * 1000 + 1000);
+            }
+            
+            getVisualizerData() {
+                if (this.analysers.length === 0) return null;
+                
+                const bufferLength = this.analysers[0].frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                this.analysers[0].getByteFrequencyData(dataArray);
+                
+                return dataArray;
+            }
+        }
+        
+        // Create track instances
+        const trackInstances = tracks.map(trackData => new Track(trackData));
+        
+        // Generate track cards
+        function generateTrackCards() {
+            const grid = document.getElementById('tracksGrid');
+            
+            trackInstances.forEach(track => {
+                const card = document.createElement('div');
+                card.className = 'track-card';
+                card.id = `track_${track.id}`;
+                
+                let parametersHtml = '';
+                Object.entries(track.parameters).forEach(([paramName, paramData]) => {
+                    parametersHtml += `
+                        <div class="parameter">
+                            <label>${paramData.label}</label>
+                            <input type="range" id="${track.id}_${paramName}" 
+                                   min="${paramData.min}" max="${paramData.max}" 
+                                   value="${paramData.default}" step="0.01">
+                        </div>
+                    `;
+                });
+                
+                card.innerHTML = `
+                    <div class="track-title">${track.title}</div>
+                    <div class="track-description">${track.description}</div>
+                    <div class="controls">
+                        <button class="playBtn" data-track="${track.id}">Play</button>
+                        <button class="stopBtn" data-track="${track.id}">Stop</button>
+                    </div>
+                    ${parametersHtml}
+                    <div class="visualization">
+                        <canvas id="visual_${track.id}"></canvas>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        // Visualization
+        function setupVisualization() {
+            trackInstances.forEach(track => {
+                const canvas = document.getElementById(`visual_${track.id}`);
+                if (!canvas) return;
+                
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                
+                function draw() {
+                    requestAnimationFrame(draw);
+                    
+                    const data = track.getVisualizerData();
+                    if (!data || !track.isPlaying) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        return;
+                    }
+                    
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    const barWidth = canvas.width / data.length;
+                    let x = 0;
+                    
+                    for (let i = 0; i < data.length; i++) {
+                        const barHeight = (data[i] / 255) * canvas.height;
+                        
+                        ctx.fillStyle = '#00ff00';
+                        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                        
+                        x += barWidth;
+                    }
+                }
+                
+                draw();
+            });
+        }
+        
+        // Event listeners
+        function setupEventListeners() {
+            // Track controls
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('playBtn')) {
+                    const trackId = e.target.dataset.track;
+                    const track = trackInstances.find(t => t.id === trackId);
+                    if (track) {
+                        track.start();
+                        activeTracks.add(trackId);
+                        document.getElementById(`track_${trackId}`).classList.add('active');
+                    }
+                }
+                
+                if (e.target.classList.contains('stopBtn')) {
+                    const trackId = e.target.dataset.track;
+                    const track = trackInstances.find(t => t.id === trackId);
+                    if (track) {
+                        track.stop();
+                        activeTracks.delete(trackId);
+                        document.getElementById(`track_${trackId}`).classList.remove('active');
+                    }
+                }
+            });
+            
+            // Master controls
+            document.getElementById('playAll').addEventListener('click', () => {
+                initAudio();
+                trackInstances.forEach(track => {
+                    track.start();
+                    activeTracks.add(track.id);
+                    document.getElementById(`track_${track.id}`).classList.add('active');
+                });
+            });
+            
+            document.getElementById('stopAll').addEventListener('click', () => {
+                trackInstances.forEach(track => {
+                    track.stop();
+                    activeTracks.delete(track.id);
+                    document.getElementById(`track_${track.id}`).classList.remove('active');
+                });
+            });
+            
+            // Master volume
+            const masterVolumeSlider = document.getElementById('masterVolumeSlider');
+            const masterVolumeBtn = document.getElementById('masterVolume');
+            
+            masterVolumeSlider.addEventListener('input', (e) => {
+                const volume = e.target.value / 100;
+                if (masterGain) {
+                    masterGain.gain.value = volume;
+                }
+                masterVolumeBtn.textContent = `Master Volume: ${e.target.value}%`;
+            });
+            
+            // Initialize audio on first user interaction
+            document.addEventListener('click', initAudio, { once: true });
+        }
+        
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            generateTrackCards();
+            setupVisualization();
+            setupEventListeners();
+        });
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            trackInstances.forEach(track => {
+                track.stop();
+            });
+        });
+    </script>
+</body>
+</html>
