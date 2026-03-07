@@ -346,6 +346,240 @@ class ErrorVisualizer:
         
         return output_path
     
+    def create_hash_sequence_harmony_viz(self, duration=10, fps=30):
+        """Create visualization for Hash Sequence Harmony - mathematical patterns"""
+        frames = duration * fps
+        
+        fig, ax = plt.subplots(figsize=(12, 8), facecolor='black')
+        ax.set_facecolor('black')
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 10)
+        ax.axis('off')
+        
+        colors = self.color_schemes['hash_sequence']
+        
+        # Create hash sequence pattern
+        def hash_function(x, seed):
+            return (x * 2654435761 + seed) % 32
+        
+        def animate(frame):
+            ax.clear()
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 10)
+            ax.axis('off')
+            
+            # Create hash visualization with flowing patterns
+            n_sequences = 8
+            for i in range(n_sequences):
+                y_base = 1 + i * 1.1
+                
+                # Generate hash values for this sequence
+                x_points = np.linspace(0, 10, 50)
+                y_points = []
+                
+                for x in x_points:
+                    hash_val = hash_function(int(x * 10 + frame + i * 100), i)
+                    y = y_base + (hash_val % 20 - 10) * 0.1
+                    y_points.append(y)
+                
+                # Draw hash sequence
+                color = colors[i % len(colors)]
+                ax.plot(x_points, y_points, color=color, alpha=0.8, linewidth=2)
+                
+                # Add hash value labels
+                if i < 4:  # Only show labels for first few sequences
+                    hash_val = hash_function(frame + i * 100, i)
+                    ax.text(0.2, y_base + 0.3, f'hash_{i}: {hash_val:08x}', 
+                           color=color, fontsize=8, alpha=0.7)
+            
+            # Show central harmony
+            if frame > frames * 0.3:
+                center_x, center_y = 5, 5
+                harmony_radius = 1 + 0.5 * np.sin(frame * 0.1)
+                harmony_circle = Circle((center_x, center_y), harmony_radius, 
+                                      fill=False, edgecolor='white', alpha=0.6, linewidth=2)
+                ax.add_patch(harmony_circle)
+                ax.text(center_x, center_y, 'HARMONY', color='white', fontsize=12, 
+                       ha='center', va='center', alpha=0.8, weight='bold')
+            
+            ax.set_title('Hash Sequence Harmony - Mathematical Beauty', color='white', fontsize=16)
+        
+        anim = animation.FuncAnimation(fig, animate, frames=frames, interval=1000/fps)
+        
+        output_path = os.path.join(self.output_dir, 'hash_sequence_harmony_visualization.gif')
+        anim.save(output_path, writer='pillow', fps=fps)
+        plt.close()
+        
+        return output_path
+    
+    def create_segmentation_fault_viz(self, duration=10, fps=30):
+        """Create visualization for Segmentation Fault - memory violation explosion"""
+        frames = duration * fps
+        
+        fig, ax = plt.subplots(figsize=(12, 8), facecolor='black')
+        ax.set_facecolor('black')
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 10)
+        ax.axis('off')
+        
+        colors = self.color_schemes['segmentation_fault']
+        
+        def animate(frame):
+            ax.clear()
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 10)
+            ax.axis('off')
+            
+            # Normal memory regions
+            memory_regions = [
+                {'x': 1, 'y': 1, 'w': 3, 'h': 3, 'label': 'Code'},
+                {'x': 5, 'y': 1, 'w': 3, 'h': 3, 'label': 'Data'},
+                {'x': 1, 'y': 5, 'w': 3, 'h': 3, 'label': 'Stack'},
+                {'x': 5, 'y': 5, 'w': 3, 'h': 3, 'label': 'Heap'}
+            ]
+            
+            for region in memory_regions:
+                rect = Rectangle((region['x'], region['y']), 
+                               region['w'], region['h'],
+                               fill=False, edgecolor='gray', alpha=0.5, linewidth=1)
+                ax.add_patch(rect)
+                ax.text(region['x'] + region['w']/2, region['y'] + region['h']/2, 
+                       region['label'], color='gray', fontsize=10, ha='center', va='center')
+            
+            # Show illegal access attempt
+            if frame > frames * 0.3:
+                # Illegal memory access arrow
+                start_x, start_y = 3, 4  # Inside stack
+                end_x, end_y = 7, 7      # Outside all regions (segmentation fault)
+                
+                ax.arrow(start_x, start_y, end_x - start_x, end_y - start_y,
+                        head_width=0.2, head_length=0.3, fc='red', ec='red', alpha=0.8)
+                
+                # Show explosion effect
+                explosion_alpha = min(1.0, (frame - frames * 0.3) / (frames * 0.2))
+                if explosion_alpha > 0:
+                    # Explosion particles
+                    n_particles = 20
+                    for i in range(n_particles):
+                        angle = 2 * np.pi * i / n_particles
+                        distance = explosion_alpha * 2
+                        particle_x = end_x + distance * np.cos(angle)
+                        particle_y = end_y + distance * np.sin(angle)
+                        
+                        color = colors[i % len(colors)]
+                        ax.scatter(particle_x, particle_y, c=color, alpha=explosion_alpha, s=30)
+                    
+                    # Central explosion
+                    ax.scatter(end_x, end_y, c='red', alpha=explosion_alpha, s=100, marker='*')
+                    
+                    # Error message
+                    ax.text(5, 8.5, 'SEGMENTATION FAULT', color='red', fontsize=16, 
+                           ha='center', weight='bold', alpha=explosion_alpha)
+                    ax.text(5, 8, 'Access violation at 0xdeadbeef', color='orange', fontsize=12, 
+                           ha='center', alpha=explosion_alpha)
+            
+            ax.set_title('Segmentation Fault - Memory Violation', color='white', fontsize=16)
+        
+        anim = animation.FuncAnimation(fig, animate, frames=frames, interval=1000/fps)
+        
+        output_path = os.path.join(self.output_dir, 'segmentation_fault_visualization.gif')
+        anim.save(output_path, writer='pillow', fps=fps)
+        plt.close()
+        
+        return output_path
+    
+    def create_kernel_panic_viz(self, duration=10, fps=30):
+        """Create visualization for Kernel Panic - system shutdown"""
+        frames = duration * fps
+        
+        fig, ax = plt.subplots(figsize=(12, 8), facecolor='black')
+        ax.set_facecolor('black')
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 10)
+        ax.axis('off')
+        
+        colors = self.color_schemes['kernel_panic']
+        
+        # System processes
+        processes = []
+        for i in range(8):
+            processes.append({
+                'x': 1 + (i % 4) * 2,
+                'y': 7 + (i // 4) * 2,
+                'name': f'proc_{i}',
+                'alive': True
+            })
+        
+        def animate(frame):
+            ax.clear()
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 10)
+            ax.axis('off')
+            
+            # System panic progress
+            panic_progress = min(1.0, frame / (frames * 0.7))
+            
+            # Draw processes
+            for i, proc in enumerate(processes):
+                # Kill processes as panic progresses
+                if panic_progress > i / len(processes):
+                    proc['alive'] = False
+                
+                color = colors[2] if proc['alive'] else colors[0]  # Gray when dead
+                alpha = 0.8 if proc['alive'] else 0.3
+                marker = 'o' if proc['alive'] else 'x'
+                
+                ax.scatter(proc['x'], proc['y'], c=color, alpha=alpha, s=100, marker=marker)
+                ax.text(proc['x'], proc['y'] - 0.5, proc['name'], 
+                       color=color, fontsize=8, ha='center', alpha=alpha)
+            
+            # Show kernel panic
+            if panic_progress > 0.2:
+                panic_alpha = min(1.0, (panic_progress - 0.2) / 0.3)
+                
+                # Panic screen background
+                panic_rect = Rectangle((1, 1), 8, 6, 
+                                     fill=True, facecolor='black', alpha=panic_alpha)
+                ax.add_patch(panic_rect)
+                
+                # Panic text
+                if panic_alpha > 0.5:
+                    ax.text(5, 6, 'KERNEL PANIC', color='red', fontsize=18, 
+                           ha='center', weight='bold', alpha=panic_alpha)
+                    ax.text(5, 5.5, 'System halted', color='white', fontsize=12, 
+                           ha='center', alpha=panic_alpha)
+                    
+                    # Fake kernel error message
+                    error_messages = [
+                        'Unable to handle kernel NULL pointer dereference',
+                        'Kernel Oops: 0000 [#1] SMP',
+                        'CPU: 0 PID: 1 Comm: init Not tainted'
+                    ]
+                    
+                    for i, msg in enumerate(error_messages[:3]):
+                        ax.text(5, 4.5 - i * 0.5, msg, color='white', fontsize=10, 
+                               ha='center', alpha=panic_alpha * 0.8)
+                    
+                    # Final shutdown
+                    if panic_alpha > 0.8:
+                        ax.text(5, 2, 'SYSTEM SHUTDOWN', color='red', fontsize=16, 
+                               ha='center', weight='bold', alpha=panic_alpha - 0.8)
+            
+            # Show system uptime
+            uptime = (frames - frame) / fps
+            ax.text(9, 9.5, f'Uptime: {uptime:.1f}s', color='white', fontsize=10, 
+                   ha='right', alpha=0.7)
+            
+            ax.set_title('Kernel Panic - System Shutdown', color='white', fontsize=16)
+        
+        anim = animation.FuncAnimation(fig, animate, frames=frames, interval=1000/fps)
+        
+        output_path = os.path.join(self.output_dir, 'kernel_panic_reprise_visualization.gif')
+        anim.save(output_path, writer='pillow', fps=fps)
+        plt.close()
+        
+        return output_path
+    
     def create_all_visualizations(self):
         """Generate all visualizations"""
         print("Generating enhanced visualizations for Error Garden...")
@@ -367,6 +601,15 @@ class ErrorVisualizer:
             print(f"✓ Created: {viz_paths[-1]}")
             
             viz_paths.append(self.create_memory_leak_viz())
+            print(f"✓ Created: {viz_paths[-1]}")
+            
+            viz_paths.append(self.create_hash_sequence_harmony_viz())
+            print(f"✓ Created: {viz_paths[-1]}")
+            
+            viz_paths.append(self.create_segmentation_fault_viz())
+            print(f"✓ Created: {viz_paths[-1]}")
+            
+            viz_paths.append(self.create_kernel_panic_viz())
             print(f"✓ Created: {viz_paths[-1]}")
             
         except Exception as e:
