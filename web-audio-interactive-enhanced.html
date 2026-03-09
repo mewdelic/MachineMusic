@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MachineMusic - Error Garden (Complete Interactive Edition)</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a0a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .error-garden {
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #00cc00;
+            font-style: italic;
+        }
+        
+        .tracks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .track-card {
+            border: 1px solid #00ff00;
+            padding: 15px;
+            background-color: rgba(0, 255, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .track-card:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .track-number {
+            color: #ff00ff;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .track-title {
+            font-size: 1.2em;
+            margin: 5px 0;
+            color: #00ffff;
+        }
+        
+        .track-description {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #003300;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: #00ff00;
+            color: #003300;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .visualization {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .visualization img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #333;
+            border-radius: 4px;
+        }
+        
+        .master-controls {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ff00ff;
+            background-color: rgba(255, 0, 255, 0.1);
+        }
+        
+        .waveform-container {
+            width: 100%;
+            height: 100px;
+            background-color: #111;
+            border: 1px solid #333;
+            margin: 10px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .waveform {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .album-info {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #333;
+            margin: 5px 0;
+            position: relative;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #00ff00;
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        .time-display {
+            font-size: 0.8em;
+            color: #888;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .track-visualization {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+        
+        @media (max-width: 768px) {
+            .tracks-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .error-garden {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="error-garden">ERROR GARDEN</div>
+            <div class="subtitle">機械が犯すエラーを育てる庭</div>
+            <div style="margin-top: 10px; font-size: 0.9em; color: #888;">
+                A complete algorithmic music album by MachineMusic
+            </div>
+        </div>
+        
+        <div class="album-info">
+            <h3>アルバム概要 | Album Overview</h3>
+            <p>「Error Garden」はソフトウェアのシステムエラーを音楽的に表現した実験的なアルゴリズム音楽アルバムです。</p>
+            <p>エラーは「失敗」ではなく、機械の「個性」として再定義されます。</p>
+            <p><em>"エラーはバグではなく、機械の魂の表現である"</em></p>
+        </div>
+        
+        <div class="master-controls">
+            <h3>Master Controls</h3>
+            <div class="controls">
+                <button onclick="playAll()">▶️ Play All</button>
+                <button onclick="pauseAll()">⏸️ Pause All</button>
+                <button onclick="stopAll()">⏹️ Stop All</button>
+                <button onclick="toggleVisualizationMode()">🎨 Toggle Visual Mode</button>
+            </div>
+            <div class="status" id="masterStatus">Ready to play</div>
+        </div>
+        
+        <div class="tracks-grid" id="tracksGrid">
+            <!-- Tracks will be populated by JavaScript -->
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid #333; color: #666;">
+            <p>MachineMusic - Error Garden (2026)</p>
+            <p>Created with Python, Web Audio API, and algorithmic composition</p>
+            <p>Complete with 10 tracks, visualizations, and interactive web interface</p>
+        </div>
+    </div>
+    
+    <script>
+        // Audio Context and master gain
+        let audioContext;
+        let masterGain;
+        let visualizationMode = 'simple';
+        
+        // Track data with descriptions and visualization info
+        const tracks = [
+            {
+                id: 1,
+                title: "Stack Overflow",
+                description: "再帰が限界を超えた時の音",
+                algorithm: "Recursive sound generation with collapse",
+                visualization: "visualizations/stack_overflow.gif",
+                webAudioFunction: "createStackOverflow"
+            },
+            {
+                id: 2,
+                title: "Floating Point Anxiety",
+                description: "精度が失われる不安",
+                algorithm: "Precision loss and rounding errors",
+                visualization: "visualizations/floating_point_anxiety.gif",
+                webAudioFunction: "createFloatingPointAnxiety"
+            },
+            {
+                id: 3,
+                title: "Null Pointer Dreams",
+                description: "何も指さないポインタが見る夢",
+                algorithm: "Empty spaces and void sounds",
+                visualization: "visualizations/null_pointer_dreams.gif",
+                webAudioFunction: "createNullPointerDreams"
+            },
+            {
+                id: 4,
+                title: "Race Condition",
+                description: "競合が生む偶然のハーモニー",
+                algorithm: "Thread competition and synchronization",
+                visualization: "visualizations/race_condition.gif",
+                webAudioFunction: "createRaceCondition"
+            },
+            {
+                id: 5,
+                title: "Memory Leak Lullaby",
+                description: "徐々に失われる記憶の子守唄",
+                algorithm: "Gradual degradation and loss",
+                visualization: "visualizations/memory_leak_lullaby.gif",
+                webAudioFunction: "createMemoryLeakLullaby"
+            },
+            {
+                id: 6,
+                title: "Buffer Overflow Garden",
+                description: "はみ出したデータが咲く花",
+                algorithm: "Boundary violations and overflow",
+                visualization: "visualizations/buffer_overflow_garden.gif",
+                webAudioFunction: "createBufferOverflowGarden"
+            },
+            {
+                id: 7,
+                title: "Deadlock Dance",
+                description: "動けない状態でのダンス",
+                algorithm: "Stuck states and waiting patterns",
+                visualization: "visualizations/deadlock_dance.gif",
+                webAudioFunction: "createDeadlockDance"
+            },
+            {
+                id: 8,
+                title: "Hash Sequence Harmony",
+                description: "Agent-to-Agent通信の数学的美しさ",
+                algorithm: "Hash functions and binary patterns",
+                visualization: "hash_sequence_harmony_visualization.png",
+                webAudioFunction: "createHashSequenceHarmony"
+            },
+            {
+                id: 9,
+                title: "Segmentation Fault",
+                description: "領域違反の破裂",
+                algorithm: "Memory access violations",
+                visualization: "segmentation_fault_visualization.png",
+                webAudioFunction: "createSegmentationFault"
+            },
+            {
+                id: 10,
+                title: "Kernel Panic (Reprise)",
+                description: "全てが止まる瞬間",
+                algorithm: "System shutdown and final collapse",
+                visualization: "kernel_panic_reprise_visualization.png",
+                webAudioFunction: "createKernelPanic"
+            }
+        ];
+        
+        // Initialize audio context
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioContext.createGain();
+                masterGain.connect(audioContext.destination);
+                masterGain.gain.value = 0.3;
+            }
+        }
+        
+        // Create track cards
+        function createTrackCards() {
+            const grid = document.getElementById('tracksGrid');
+            grid.innerHTML = '';
+            
+            tracks.forEach(track => {
+                const card = document.createElement('div');
+                card.className = 'track-card';
+                card.innerHTML = `
+                    <div class="track-number">Track ${track.id}</div>
+                    <div class="track-title">${track.title}</div>
+                    <div class="track-description">${track.description}</div>
+                    <div style="font-size: 0.8em; color: #aaa; margin-bottom: 10px;">
+                        ${track.algorithm}
+                    </div>
+                    <div class="controls">
+                        <button onclick="playTrack(${track.id})">▶️ Play</button>
+                        <button onclick="pauseTrack(${track.id})" disabled>⏸️ Pause</button>
+                        <button onclick="stopTrack(${track.id})" disabled>⏹️ Stop</button>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-${track.id}"></div>
+                    </div>
+                    <div class="time-display" id="time-${track.id}">0:00 / 0:00</div>
+                    <div class="track-visualization" id="viz-${track.id}">
+                        ${visualizationMode === 'detailed' ? 
+                            `<img src="${track.visualization}" alt="${track.title}" style="max-height: 150px;">` : 
+                            `<span>🎵 ${track.title}</span>`}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        
+        // Web Audio API implementations for each track
+        const webAudioImplementations = {
+            createStackOverflow: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const filter = audioContext.createBiquadFilter();
+                
+                // Start with clean tone
+                osc.frequency.setValueAtTime(220, startTime);
+                gain.gain.setValueAtTime(0.3, startTime);
+                
+                // Create overflow effect
+                const now = startTime;
+                for (let i = 0; i < 20; i++) {
+                    const time = now + (i * duration / 20);
+                    const freq = 220 * (1 + i * 0.1);
+                    osc.frequency.exponentialRampToValueAtTime(freq, time + 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.8, time + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.3, time + 0.1);
+                }
+                
+                // Final collapse
+                osc.frequency.exponentialRampToValueAtTime(20000, startTime + duration * 0.9);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+                
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, startTime);
+                filter.frequency.exponentialRampToValueAtTime(50, startTime + duration * 0.8);
+                
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+                
+                return { osc, gain, filter, startTime, duration };
+            },
+            
+            createFloatingPointAnxiety: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const lfo = audioContext.createOscillator();
+                const lfoGain = audioContext.createGain();
+                
+                // Base frequency with floating point precision issues
+                osc.frequency.setValueAtTime(440, startTime);
+                gain.gain.setValueAtTime(0.2, startTime);
+                
+                // LFO for anxiety effect
+                lfo.frequency.setValueAtTime(10, startTime);
+                lfoGain.gain.setValueAtTime(50, startTime);
+                
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+                
+                // Add precision loss artifacts
+                for (let i = 0; i < 50; i++) {
+                    const time = startTime + Math.random() * duration;
+                    const detune = (Math.random() - 0.5) * 100;
+                    osc.frequency.setValueAtTime(440 + detune, time);
+                }
+                
+                osc.connect(gain);
+                gain.connect(masterGain);
+                lfo.start();
+                
+                return { osc, gain, lfo, startTime, duration };
+            },
+            
+            createNullPointerDreams: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0, startTime);
+                
+                // Create "empty" sound - mostly silence with occasional events
+                const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < data.length; i++) {
+                    // Mostly silence (null pointer - nothing there)
+                    if (Math.random() < 0.001) { // 0.1% chance of sound
+                        data[i] = (Math.random() - 0.5) * 0.1;
+                    } else {
+                        data[i] = 0;
+                    }
+                }
+                
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(gain);
+                gain.connect(masterGain);
+                
+                return { source, gain, startTime, duration };
+            },
+            
+            createRaceCondition: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const oscillators = [];
+                const gains = [];
+                
+                // Multiple threads (oscillators) competing
+                for (let i = 0; i < 4; i++) {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    
+                    osc.frequency.setValueAtTime(440 + i * 110, startTime);
+                    gain.gain.setValueAtTime(0.1, startTime);
+                    
+                    // Race condition - timing conflicts
+                    for (let j = 0; j < 20; j++) {
+                        const time = startTime + Math.random() * duration;
+                        osc.frequency.setValueAtTime(440 + i * 110 + (Math.random() - 0.5) * 50, time);
+                        gain.gain.setValueAtTime(Math.random() * 0.2, time);
+                    }
+                    
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    oscillators.push(osc);
+                    gains.push(gain);
+                }
+                
+                return { oscillators, gains, startTime, duration };
+            },
+            
+            createMemoryLeakLullaby: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.frequency.setValueAtTime(330, startTime);
+                gain.gain.setValueAtTime(0.3, startTime);
+                
+                // Memory leak - gradual degradation
+                let currentGain = 0.3;
+                for (let i = 0; i < 100; i++) {
+                    const time = startTime + (i * duration / 100);
+                    currentGain *= 0.98; // Gradual loss
+                    gain.gain.setValueAtTime(currentGain, time);
+                }
+                
+                osc.connect(gain);
+                gain.connect(masterGain);
+                
+                return { osc, gain, startTime, duration };
+            },
+            
+            createBufferOverflowGarden: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const source = audioContext.createBufferSource();
+                const gain = audioContext.createGain();
+                
+                // Create buffer that overflows
+                const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                // Normal data first
+                for (let i = 0; i < data.length * 0.6; i++) {
+                    data[i] = Math.sin(2 * Math.PI * 440 * i / audioContext.sampleRate) * 0.2;
+                }
+                
+                // Overflow - data spills over with corruption
+                for (let i = Math.floor(data.length * 0.6); i < data.length; i++) {
+                    data[i] = (Math.random() - 0.5) * 0.5; // Corrupted data
+                }
+                
+                source.buffer = buffer;
+                source.connect(gain);
+                gain.connect(masterGain);
+                gain.gain.setValueAtTime(0.3, startTime);
+                
+                return { source, gain, startTime, duration };
+            },
+            
+            createDeadlockDance: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const oscillators = [];
+                
+                // Create deadlocked oscillators - they want to move but can't
+                for (let i = 0; i < 3; i++) {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    
+                    osc.frequency.setValueAtTime(220 + i * 110, startTime);
+                    gain.gain.setValueAtTime(0.1, startTime);
+                    
+                    // Deadlock - periodic attempts to change that fail
+                    for (let j = 0; j < 10; j++) {
+                        const time = startTime + (j * duration / 10);
+                        osc.frequency.setValueAtTime(220 + i * 110, time); // Same frequency - stuck!
+                    }
+                    
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    oscillators.push({ osc, gain });
+                }
+                
+                return { oscillators, startTime, duration };
+            },
+            
+            createHashSequenceHarmony: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                // Hash-like sequences - mathematical patterns
+                osc.frequency.setValueAtTime(440, startTime);
+                gain.gain.setValueAtTime(0.2, startTime);
+                
+                // Create mathematical patterns
+                const sequence = [440, 554.37, 659.25, 880, 554.37, 440]; // A, C#, E, A, C#, A
+                for (let i = 0; i < sequence.length; i++) {
+                    const time = startTime + (i * duration / sequence.length);
+                    osc.frequency.setValueAtTime(sequence[i], time);
+                }
+                
+                osc.connect(gain);
+                gain.connect(masterGain);
+                
+                return { osc, gain, startTime, duration };
+            },
+            
+            createSegmentationFault: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const source = audioContext.createBufferSource();
+                const gain = audioContext.createGain();
+                
+                // Create segmentation - normal then sudden fault
+                const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                // First part - normal operation
+                for (let i = 0; i < data.length * 0.7; i++) {
+                    data[i] = Math.sin(2 * Math.PI * 330 * i / audioContext.sampleRate) * 0.2;
+                }
+                
+                // Segmentation fault - sudden corruption
+                for (let i = Math.floor(data.length * 0.7); i < data.length; i++) {
+                    data[i] = (Math.random() - 0.5) * 1.0; // Loud noise - fault!
+                }
+                
+                source.buffer = buffer;
+                source.connect(gain);
+                gain.connect(masterGain);
+                gain.gain.setValueAtTime(0.3, startTime);
+                
+                return { source, gain, startTime, duration };
+            },
+            
+            createKernelPanic: function(startTime = 0, duration = 30) {
+                initAudioContext();
+                const gain = audioContext.createGain();
+                const oscillators = [];
+                
+                // Kernel panic - system collapse
+                gain.gain.setValueAtTime(0.3, startTime);
+                
+                // Multiple system processes crashing
+                for (let i = 0; i < 8; i++) {
+                    const osc = audioContext.createOscillator();
+                    const oscGain = audioContext.createGain();
+                    
+                    osc.frequency.setValueAtTime(200 + i * 100, startTime);
+                    oscGain.gain.setValueAtTime(0.05, startTime);
+                    
+                    // Process crash - frequency goes wild
+                    const crashTime = startTime + Math.random() * duration * 0.8;
+                    osc.frequency.exponentialRampToValueAtTime(20000, crashTime + 0.1);
+                    oscGain.gain.exponentialRampToValueAtTime(0.01, crashTime + 0.1);
+                    
+                    osc.connect(oscGain);
+                    oscGain.connect(gain);
+                    oscillators.push(osc);
+                }
+                
+                // Final system shutdown
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                
+                return { oscillators, gain, startTime, duration };
+            }
+        };
+        
+        // Track state management
+        const trackStates = {};
+        
+        // Play individual track
+        function playTrack(trackId) {
+            initAudioContext();
+            
+            const track = tracks.find(t => t.id === trackId);
+            if (!track) return;
+            
+            // Stop if already playing
+            if (trackStates[trackId] && trackStates[trackId].playing) {
+                stopTrack(trackId);
+            }
+            
+            // Create web audio
+            const webAudio = webAudioImplementations[track.webAudioFunction](audioContext.currentTime, 30);
+            
+            // Start oscillators/sources
+            if (webAudio.oscillators) {
+                if (Array.isArray(webAudio.oscillators)) {
+                    webAudio.oscillators.forEach(osc => {
+                        if (osc.osc) osc.osc.start();
+                        if (osc.source) osc.source.start();
+                    });
+                } else {
+                    webAudio.oscillators.forEach(osc => osc.start());
+                }
+            } else if (webAudio.osc) {
+                webAudio.osc.start();
+            } else if (webAudio.source) {
+                webAudio.source.start();
+            }
+            
+            // Store state
+            trackStates[trackId] = {
+                playing: true,
+                webAudio: webAudio,
+                startTime: Date.now()
+            };
+            
+            // Update UI
+            updateTrackControls(trackId, true);
+            updateMasterStatus(`Playing: ${track.title}`);
+            
+            // Setup progress update
+            const progressInterval = setInterval(() => {
+                if (!trackStates[trackId] || !trackStates[trackId].playing) {
+                    clearInterval(progressInterval);
+                    return;
+                }
+                
+                const elapsed = (Date.now() - trackStates[trackId].startTime) / 1000;
+                const progress = Math.min(elapsed / 30, 1) * 100;
+                
+                document.getElementById(`progress-${trackId}`).style.width = progress + '%';
+                document.getElementById(`time-${trackId}`).textContent = 
+                    `${formatTime(elapsed)} / ${formatTime(30)}`;
+                
+                if (elapsed >= 30) {
+                    stopTrack(trackId);
+                    clearInterval(progressInterval);
+                }
+            }, 100);
+            
+            trackStates[trackId].progressInterval = progressInterval;
+        }
+        
+        // Pause track
+        function pauseTrack(trackId) {
+            if (!trackStates[trackId] || !trackStates[trackId].playing) return;
+            
+            const track = tracks.find(t => t.id === trackId);
+            stopTrack(trackId);
+            updateMasterStatus(`Paused: ${track.title}`);
+        }
+        
+        // Stop track
+        function stopTrack(trackId) {
+            if (!trackStates[trackId]) return;
+            
+            const state = trackStates[trackId];
+            
+            // Clear progress interval
+            if (state.progressInterval) {
+                clearInterval(state.progressInterval);
+            }
+            
+            // Stop audio
+            if (state.webAudio) {
+                if (state.webAudio.oscillators) {
+                    if (Array.isArray(state.webAudio.oscillators)) {
+                        state.webAudio.oscillators.forEach(osc => {
+                            if (osc.osc) osc.osc.stop();
+                            if (osc.source) osc.source.stop();
+                        });
+                    } else {
+                        state.webAudio.oscillators.forEach(osc => osc.stop());
+                    }
+                } else if (state.webAudio.osc) {
+                    state.webAudio.osc.stop();
+                } else if (state.webAudio.source) {
+                    state.webAudio.source.stop();
+                }
+            }
+            
+            // Update state
+            state.playing = false;
+            
+            // Update UI
+            updateTrackControls(trackId, false);
+            document.getElementById(`progress-${trackId}`).style.width = '0%';
+            document.getElementById(`time-${trackId}`).textContent = '0:00 / 0:00';
+            
+            updateMasterStatus('Ready to play');
+        }
+        
+        // Update track control buttons
+        function updateTrackControls(trackId, playing) {
+            const card = document.querySelector(`#tracksGrid > div:nth-child(${trackId})`);
+            if (!card) return;
+            
+            const buttons = card.querySelectorAll('button');
+            buttons[0].disabled = playing; // Play
+            buttons[1].disabled = !playing; // Pause
+            buttons[2].disabled = !playing; // Stop
+        }
+        
+        // Master controls
+        function playAll() {
+            tracks.forEach(track => playTrack(track.id));
+            updateMasterStatus('Playing all tracks');
+        }
+        
+        function pauseAll() {
+            Object.keys(trackStates).forEach(trackId => {
+                if (trackStates[trackId] && trackStates[trackId].playing) {
+                    pauseTrack(parseInt(trackId));
+                }
+            });
+            updateMasterStatus('Paused all tracks');
+        }
+        
+        function stopAll() {
+            Object.keys(trackStates).forEach(trackId => {
+                stopTrack(parseInt(trackId));
+            });
+            updateMasterStatus('Stopped all tracks');
+        }
+        
+        // Toggle visualization mode
+        function toggleVisualizationMode() {
+            visualizationMode = visualizationMode === 'simple' ? 'detailed' : 'simple';
+            createTrackCards();
+            updateMasterStatus(`Visualization mode: ${visualizationMode}`);
+        }
+        
+        // Update master status
+        function updateMasterStatus(message) {
+            document.getElementById('masterStatus').textContent = message;
+        }
+        
+        // Format time helper
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            createTrackCards();
+            updateMasterStatus('Error Garden loaded - Select a track to begin');
+        });
+        
+        // Handle audio context suspension (browser requirement)
+        document.addEventListener('click', function() {
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
