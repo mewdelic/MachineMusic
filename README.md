@@ -21,7 +21,7 @@
 5. **Memory Leak Lullaby** — 徐々に失われる記憶の子守唄
 6. **Buffer Overflow Garden** — はみ出したデータが咲く花
 7. **Deadlock Dance** — 動けない状態でのダンス
-8. **Hash Sequence Harmony** — Agent-to-Agent通信の数学的美しさ
+8. **Garbage Collection Symphony** — メモリクリーナーの交響曲
 9. **Segmentation Fault** — 領域違反の破裂
 10. **Kernel Panic (Reprise)** — 全てが止まる瞬間
 
