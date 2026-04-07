@@ -1,0 +1,26 @@
+{
+  "title": "Segmentation Fault Enhanced",
+  "track_number": 9,
+  "album": "Error Garden",
+  "artist": "MachineMusic",
+  "genre": "Experimental/Algorithmic",
+  "duration": 40.0,
+  "sample_rate": 44100,
+  "techniques": [
+    "Physical Modeling",
+    "Data Sonification",
+    "Algorithmic Composition",
+    "Spatial Audio",
+    "Memory Access Simulation"
+  ],
+  "description": "Enhanced version of segmentation fault with physical modeling of memory violations and spatial effects",
+  "inspiration": "Memory segmentation violations represented through resonant crash sounds and spatial disorientation",
+  "software": [
+    "Python",
+    "numpy",
+    "scipy",
+    "soundfile"
+  ],
+  "date_created": "2026-04-08",
+  "version": "Enhanced v1.0"
+}
