@@ -1,369 +1,443 @@
 #!/usr/bin/env python3
 """
-Deadlock Dance Advanced - 高度な物理モデリングによるデッドロックの音響表現（簡易版）
+Deadlock Dance Advanced - 高度な物理モデリングによるデッドロックの音響表現
 
-デッドロック状態を多層的な物理モデリングで表現：
-- スレッドの相互ブロッキングを弦の物理モデルで表現
-- リソース競合を衝突する物体の音響で表現
-- デッドロック解決までの過程を時間発展シミュレーション
+デッドロックの状態を高度な物理モデリングで表現。
+複数のプロセスが互いにリソースを待機し、全く進行できない状態を音楽化。
 """
 
 import numpy as np
 import scipy.signal
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
 import soundfile as sf
-import warnings
-warnings.filterwarnings('ignore')
+from pathlib import Path
+import matplotlib.pyplot as plt
 
 class DeadlockDanceAdvanced:
-    def __init__(self, duration=90, sample_rate=44100):
+    def __init__(self, duration=180, sample_rate=44100):
         self.duration = duration
         self.sample_rate = sample_rate
-        self.samples = int(duration * sample_rate)
-        self.time = np.linspace(0, duration, self.samples)
+        self.num_samples = int(duration * sample_rate)
         
-        # ステレオ出力
-        self.output = np.zeros((self.samples, 2), dtype=np.float64)
+        # プロセス数（デッドロックの当事者）
+        self.num_processes = 4
+        
+        # 各プロセスの基本周波数
+        self.base_freqs = [110.0, 165.0, 220.0, 330.0]  # A2, E3, A3, E4
         
         # 物理モデリングパラメータ
-        self.setup_physics_parameters()
+        self.damping = 0.998
+        self.nonlinear_factor = 0.3
+        self.coupling_strength = 0.15
         
-    def setup_physics_parameters(self):
-        """物理モデリングのパラメータを設定"""
-        # 4つのスレッドの基本周波数
-        self.thread_frequencies = [220, 330, 440, 550]  # A3, E4, A4, C#5
+        # 空間化パラメータ
+        self.room_size = 0.8
+        self.reverb_time = 2.5
         
-        # スレッドの物理的特性
-        self.thread_params = [
-            {'tension': 0.6, 'damping': 0.98, 'pan': -0.8},    # Thread A (左)
-            {'tension': 0.7, 'damping': 0.97, 'pan': -0.3},    # Thread B (左中央)
-            {'tension': 0.8, 'damping': 0.96, 'pan': 0.3},     # Thread C (右中央)
-            {'tension': 0.9, 'damping': 0.95, 'pan': 0.8}      # Thread D (右)
-        ]
+        # マルチバンド処理
+        self.bands = 6
+        self.band_freqs = [100, 300, 800, 2000, 5000, 12000]
         
-        # 6つのリソース
-        self.resources = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6']
-        self.resource_frequencies = [880, 990, 1100, 1230, 1380, 1540]
+        # 出力先
+        self.output_dir = Path("samples")
+        self.output_dir.mkdir(exist_ok=True)
         
-    def generate_thread_vibration(self, thread_idx, time_idx):
-        """スレッドの振動を生成（弦の物理モデル）"""
-        t = self.time[time_idx]
-        params = self.thread_params[thread_idx]
-        base_freq = self.thread_frequencies[thread_idx]
+        print(f"DeadlockDanceAdvanced initialized: duration={duration}s, sample_rate={sample_rate}")
         
-        # 基本周波数を緊張度で調整
-        freq = base_freq * (1.0 + params['tension'])
+    def create_deadlock_pattern(self, time_array):
+        """
+        デッドロックの競合パターンを生成
+        複数のプロセスが互いにブロックし合う状態を表現
+        """
+        deadlock_pattern = np.zeros((self.num_processes, len(time_array)))
         
-        # 振幅の時間変化（デッドロックの進行による）
-        progress = t / self.duration
-        
-        # フェーズごとの振幅変化
-        if progress < 0.2:  # 初期状態
-            amplitude = 0.1 * (progress / 0.2)
-        elif progress < 0.4:  # 競合発生
-            amplitude = 0.1 + 0.2 * ((progress - 0.2) / 0.2)
-        elif progress < 0.7:  # デッドロック状態（最大緊張）
-            amplitude = 0.3 + 0.3 * np.sin(2 * np.pi * 2 * progress)
-        elif progress < 0.9:  # 解決試行
-            amplitude = 0.6 - 0.3 * ((progress - 0.7) / 0.2)
-        else:  # タイムアウト
-            amplitude = 0.3 * (1.0 - (progress - 0.9) / 0.1)
+        for i in range(self.num_processes):
+            # 各プロセスの競合サイクル
+            cycle_period = 2.0 + i * 0.5  # 各プロセスの周期は少しずつ異なる
             
-        # 複数の倍音を合成
-        vibration = 0
-        for harmonic in range(1, 4):
-            harm_amp = amplitude / harmonic
-            vibration += harm_amp * np.sin(2 * np.pi * freq * harmonic * t)
+            # リソース要求パターン（矩形波に近い）
+            resource_request = scipy.signal.square(
+                2 * np.pi * time_array / cycle_period,
+                duty=0.3
+            )
             
-        # 減衰
-        vibration *= params['damping'] ** t
+            # 競合状態の強度（時間経過とともに悪化）
+            intensity = 1.0 + 0.5 * (time_array / self.duration) ** 2
+            
+            # 他のプロセスからの干渉
+            interference = np.zeros_like(time_array)
+            for j in range(self.num_processes):
+                if i != j:
+                    interference += 0.1 * scipy.signal.square(
+                        2 * np.pi * time_array / (2.0 + j * 0.5),
+                        duty=0.3
+                    )
+            
+            deadlock_pattern[i] = resource_request * intensity * (1 + interference)
+            
+        return deadlock_pattern
+    
+    def physical_model_oscillator(self, freq, phase, damping, excitation):
+        """
+        物理モデリングオシレーター
+        減衰振動子と非線形結合をモデル化
+        """
+        # 連続時間から離散時間への変換
+        omega = 2 * np.pi * freq / self.sample_rate
         
-        return vibration
+        # 減衰係数
+        alpha = damping
         
-    def generate_resource_collision(self, res1_idx, res2_idx, time_idx):
-        """リソース間の衝突音を生成"""
-        t = self.time[time_idx]
+        # 非線形項
+        nonlinear = self.nonlinear_factor * np.sin(3 * phase)
         
-        # 衝突の周期性（2秒周期）
-        cycle_pos = t % 2.0
+        # 位相の更新（非線形振動子）
+        phase_update = omega + nonlinear * excitation
         
-        if cycle_pos < 0.1:  # 衝突発生
-            # 2つのリソース周波数の平均
-            freq1 = self.resource_frequencies[res1_idx]
-            freq2 = self.resource_frequencies[res2_idx]
-            collision_freq = (freq1 + freq2) / 2
-            
-            # インパクトエネルギー
-            impact_energy = 0.3 * (1.0 - cycle_pos / 0.1)
-            
-            # インパクト波形
-            impact = impact_energy * np.exp(-cycle_pos * 30) * np.sin(2 * np.pi * collision_freq * cycle_pos)
-            
-            # ノイズ成分
-            noise = np.random.normal(0, impact_energy * 0.05)
-            
-            return impact + noise
-        else:
-            return 0
-            
-    def get_deadlock_detection_envelope(self, t):
-        """デッドロック検出の包絡線"""
-        progress = t / self.duration
+        # 振幅の更新（減衰と励起）
+        amplitude = alpha * (1 + 0.1 * excitation)
         
-        # 周期的な検出パターン
-        cycle_time = 3.0  # 3秒周期
-        cycle_progress = (t % cycle_time) / cycle_time
+        return phase_update, amplitude
+    
+    def coupled_oscillators(self, deadlock_pattern, time_array):
+        """
+        結合振動子システムによるデッドロックの表現
+        """
+        # 各プロセスの信号
+        signals = np.zeros((self.num_processes, self.num_samples))
         
-        detection_level = 0
-        if progress < 0.2:
-            detection_level = 0.1
-        elif progress < 0.4:
-            detection_level = 0.1 + 0.3 * (progress - 0.2) / 0.2
-        elif progress < 0.7:
-            # デッドロック状態では検出レベルが振動
-            base_level = 0.4 + 0.4 * ((progress - 0.4) / 0.3)
-            oscillation = 0.1 * np.sin(2 * np.pi * 5 * cycle_progress)
-            detection_level = base_level + oscillation
-        else:
-            detection_level = 0.8 - 0.6 * ((progress - 0.7) / 0.3)
-            
-        return detection_level
+        # 位相と振幅の状態
+        phases = np.zeros(self.num_processes)
+        amplitudes = np.ones(self.num_processes)
         
-    def compose(self):
-        """デッドロックダンスの合成"""
-        print("デッドロックダンス Advanced の生成を開始...")
+        # カップリングマトリックス（どのプロセスがどのプロセスをブロックするか）
+        coupling_matrix = np.array([
+            [0.0, 0.3, 0.0, 0.2],    # プロセス0 → 1, 3をブロック
+            [0.2, 0.0, 0.3, 0.0],    # プロセス1 → 0, 2をブロック
+            [0.0, 0.2, 0.0, 0.3],    # プロセス2 → 1, 3をブロック
+            [0.3, 0.0, 0.2, 0.0]     # プロセス3 → 0, 2をブロック
+        ])
         
-        # 各時間ステップで音響を生成
-        for i in range(0, self.samples, 10):  # 10サンプルごとに処理（高速化）
-            t = self.time[i]
-            
-            # 左右チャンネルの初期化
-            left_channel = 0
-            right_channel = 0
-            
-            # スレッドの振動を生成
-            for thread_idx in range(4):
-                vibration = self.generate_thread_vibration(thread_idx, i)
-                params = self.thread_params[thread_idx]
+        for t in range(self.num_samples):
+            # 各プロセスの状態を更新
+            for i in range(self.num_processes):
+                # 基本周波数（時間変動）
+                freq_variation = self.base_freqs[i] * (1 + 0.1 * deadlock_pattern[i, t])
                 
-                # パンニング
-                pan = params['pan']
-                left_gain = np.sqrt((1.0 - pan) / 2.0)
-                right_gain = np.sqrt((1.0 + pan) / 2.0)
+                # 他のプロセスからのカップリング影響
+                coupling_effect = 0
+                for j in range(self.num_processes):
+                    coupling_effect += coupling_matrix[i, j] * signals[j, max(0, t-1)]
                 
-                left_channel += vibration * left_gain
-                right_channel += vibration * right_gain
+                # 物理モデリングによるオシレーター更新
+                phase_update, amplitude_update = self.physical_model_oscillator(
+                    freq_variation, phases[i], self.damping, deadlock_pattern[i, t]
+                )
                 
-            # リソース衝突を生成
-            for res1 in range(3):
-                for res2 in range(3, 6):
-                    collision = self.generate_resource_collision(res1, res2, i)
-                    # 衝突音は中央に配置
-                    left_channel += collision * 0.5
-                    right_channel += collision * 0.5
-                    
-            # デッドロック検出包絡線を適用
-            detection_envelope = self.get_deadlock_detection_envelope(t)
-            left_channel *= (1.0 + 0.5 * detection_envelope)
-            right_channel *= (1.0 + 0.5 * detection_envelope)
-            
-            # 出力に設定（10サンプル分を同じ値で埋める）
-            end_idx = min(i + 10, self.samples)
-            self.output[i:end_idx, 0] = left_channel
-            self.output[i:end_idx, 1] = right_channel
-            
-            # 進捗表示
-            if i % (self.samples // 20) == 0:
-                progress = (i / self.samples) * 100
-                print(f"進捗: {progress:.1f}%")
+                phases[i] += phase_update
+                amplitudes[i] = amplitude_update * (1 - 0.001 * coupling_effect)
                 
-        # リバーブ効果（簡易）
-        self.apply_simple_reverb()
+                # 信号生成
+                signal = amplitudes[i] * np.sin(phases[i])
+                
+                # カップリング効果の適用
+                signal += self.coupling_strength * coupling_effect
+                
+                # バンドパスフィルタリング（各プロセスの周波数帯域）
+                low_freq = self.base_freqs[i] * 0.8
+                high_freq = self.base_freqs[i] * 1.5
+                
+                # 簡易的なバンドパス（本実装では後処理で適用）
+                signals[i, t] = signal
+                
+        return signals
+    
+    def multiband_processing(self, mixed_signal):
+        """
+        マルチバンド処理による音質向上
+        """
+        # マルチバンド分解
+        bands = []
         
-        # ノーマライズ
-        max_val = np.max(np.abs(self.output))
+        # 低域カット
+        bands.append(scipy.signal.butter(2, self.band_freqs[0], 'high', 
+                                         fs=self.sample_rate, output='sos'))
+        
+        # バンドパスフィルタ
+        for i in range(len(self.band_freqs) - 1):
+            low = self.band_freqs[i]
+            high = self.band_freqs[i + 1]
+            band = scipy.signal.butter(2, [low, high], 'bandpass',
+                                       fs=self.sample_rate, output='sos')
+            bands.append(band)
+        
+        # 高域カット
+        bands.append(scipy.signal.butter(2, self.band_freqs[-1], 'low',
+                                         fs=self.sample_rate, output='sos'))
+        
+        # 各バンドの処理
+        processed_bands = []
+        for i, sos in enumerate(bands):
+            # フィルタリング
+            filtered = scipy.signal.sosfilt(sos, mixed_signal)
+            
+            # バンドごとのエンベロープ処理
+            envelope = np.abs(filtered)
+            envelope = scipy.signal.savgol_filter(envelope, 101, 3)
+            
+            # バンドごとのダイナミクス処理
+            if i < 3:  # 低域は緩やかな変化
+                filtered = filtered * (1 + 0.2 * envelope / np.max(envelope + 1e-10))
+            else:  # 高域は鋭い変化
+                filtered = filtered * (1 + 0.5 * envelope / np.max(envelope + 1e-10))
+            
+            processed_bands.append(filtered)
+        
+        # バンドの合成
+        output = np.sum(processed_bands, axis=0)
+        
+        # 正規化
+        output = output / np.max(np.abs(output) + 1e-10)
+        
+        return output
+    
+    def spatial_processing(self, signal):
+        """
+        空間化処理による立体感の付与
+        """
+        # ステレオ信号の生成
+        stereo_signal = np.zeros((2, len(signal)))
+        
+        # 周波数帯域ごとの空間化
+        for i in range(len(self.band_freqs) - 1):
+            low = self.band_freqs[i]
+            high = self.band_freqs[i + 1]
+            
+            # バンド抽出
+            sos = scipy.signal.butter(2, [low, high], 'bandpass',
+                                      fs=self.sample_rate, output='sos')
+            band_signal = scipy.signal.sosfilt(sos, signal)
+            
+            # パンニング（周波数帯域ごとに異なる定位）
+            pan_angle = (i / (len(self.band_freqs) - 1)) * np.pi
+            left_gain = np.cos(pan_angle) ** 2
+            right_gain = np.sin(pan_angle) ** 2
+            
+            # クロスフィード（わずかな逆位相信号の追加）
+            left_signal = band_signal * left_gain + 0.1 * band_signal * right_gain
+            right_signal = band_signal * right_gain + 0.1 * band_signal * left_gain
+            
+            stereo_signal[0] += left_signal
+            stereo_signal[1] += right_signal
+        
+        # リバーブの適用
+        reverb_length = int(self.reverb_time * self.sample_rate)
+        reverb_decay = np.exp(-3 * np.arange(reverb_length) / reverb_length)
+        
+        # コンボリューションリバーブ（簡易版）
+        for channel in range(2):
+            impulse_response = np.random.randn(reverb_length) * reverb_decay
+            impulse_response[0] = 1.0  # ダイレクト音
+            
+            # 畳み込み
+            wet_signal = np.convolve(stereo_signal[channel], impulse_response, mode='same')
+            
+            # ドライ/ウェットミックス
+            stereo_signal[channel] = 0.7 * stereo_signal[channel] + 0.3 * wet_signal
+        
+        # 正規化
+        stereo_signal = stereo_signal / np.max(np.abs(stereo_signal) + 1e-10)
+        
+        return stereo_signal
+    
+    def generate_composition(self):
+        """
+        Deadlock Dance Advancedの全体構成を生成
+        """
+        print("Generating Deadlock Dance Advanced...")
+        
+        # 時間軸の生成
+        time_array = np.linspace(0, self.duration, self.num_samples)
+        
+        print("Creating deadlock patterns...")
+        # デッドロックパターンの生成
+        deadlock_pattern = self.create_deadlock_pattern(time_array)
+        
+        print("Generating coupled oscillators...")
+        # 結合振動子システムの生成
+        coupled_signals = self.coupled_oscillators(deadlock_pattern, time_array)
+        
+        print("Mixing signals...")
+        # 信号のミックス（デッドロックの緊張感を表現）
+        mixed_signal = np.sum(coupled_signals, axis=0)
+        
+        print("Applying envelope...")
+        # 時間変化によるエンベロープ
+        envelope = np.ones_like(time_array)
+        
+        # 構造的なエンベロープ（時間に応じて調整）
+        # 導入部 - 緊張感の構築 (全体の20%)
+        intro_samples = int(0.2 * self.num_samples)
+        envelope[:intro_samples] = np.linspace(0, 1, intro_samples)
+        
+        # 発展部 - 競合の激化 (20%-60%)
+        dev_start = int(0.2 * self.num_samples)
+        dev_end = int(0.6 * self.num_samples)
+        dev_samples = dev_end - dev_start
+        envelope[dev_start:dev_end] *= (1 + 0.3 * np.sin(np.linspace(0, 4*np.pi, dev_samples)))
+        
+        # クライマックス - 完全なデッドロック (60%-80%)
+        climax_start = int(0.6 * self.num_samples)
+        climax_end = int(0.8 * self.num_samples)
+        climax_samples = climax_end - climax_start
+        envelope[climax_start:climax_end] *= (1.5 + 0.5 * np.sin(np.linspace(0, 8*np.pi, climax_samples)))
+        
+        # 終結部 - 静寂へ (80%-100%)
+        outro_start = int(0.8 * self.num_samples)
+        outro_samples = self.num_samples - outro_start
+        envelope[outro_start:] *= np.linspace(1, 0, outro_samples)
+        
+        # エンベロープの適用
+        mixed_signal *= envelope
+        
+        print("Applying multiband processing...")
+        # マルチバンド処理
+        mixed_signal = self.multiband_processing(mixed_signal)
+        
+        print("Applying spatial processing...")
+        # 空間化処理
+        stereo_signal = self.spatial_processing(mixed_signal)
+        
+        print("Applying final dynamics...")
+        # 最終的なダイナミクス処理
+        # コンプレッサー効果（簡易版）
+        threshold = 0.5
+        ratio = 4.0
+        
+        # RMSレベルの計算（より効率的な方法）
+        window_size = 1024
+        hop_size = 512
+        
+        # スライディングウィンドウでのRMS計算
+        rms_level = np.zeros(len(stereo_signal[0]))
+        for i in range(0, len(stereo_signal[0]) - window_size, hop_size):
+            window = stereo_signal[0, i:i+window_size]
+            rms = np.sqrt(np.mean(window**2))
+            rms_level[i:i+hop_size] = rms
+        
+        # 最後の部分を処理
+        if len(rms_level) < len(stereo_signal[0]):
+            rms_level[-1] = rms_level[-2]
+        
+        # スムージング
+        try:
+            rms_level = scipy.signal.savgol_filter(rms_level, 101, 3)
+        except:
+            # エラーが発生した場合はそのまま使用
+            pass
+        
+        # コンプレッション
+        gain_reduction = np.ones_like(rms_level)
+        compression_mask = rms_level > threshold
+        gain_reduction[compression_mask] = 1 - (1 - 1/ratio) * (rms_level[compression_mask] - threshold)
+        
+        # ゲインの適用
+        for channel in range(2):
+            stereo_signal[channel] *= gain_reduction
+        
+        # 正規化
+        max_val = np.max(np.abs(stereo_signal))
         if max_val > 0:
-            self.output = self.output / max_val * 0.8
-            
-        print("デッドロックダンス Advanced の生成完了！")
+            stereo_signal = stereo_signal / max_val
         
-    def apply_simple_reverb(self):
-        """簡易リバーブ効果"""
-        reverb_decay = 0.85
-        reverb_delay = 0.03  # 30ms
-        delay_samples = int(reverb_delay * self.sample_rate)
+        print("Composition generation complete!")
+        return stereo_signal, time_array, deadlock_pattern
+    
+    def create_visualization(self, time_array, deadlock_pattern, stereo_signal):
+        """
+        デッドロックの可視化
+        """
+        fig, axes = plt.subplots(3, 1, figsize=(12, 10))
         
-        # ディレイを加えてミックス
-        if delay_samples < self.samples:
-            delayed_left = np.roll(self.output[:, 0], delay_samples)
-            delayed_right = np.roll(self.output[:, 1], delay_samples)
-            delayed_left[:delay_samples] = 0
-            delayed_right[:delay_samples] = 0
-            
-            # ミックス
-            wet_level = 0.2
-            self.output[:, 0] = (1.0 - wet_level) * self.output[:, 0] + wet_level * delayed_left
-            self.output[:, 1] = (1.0 - wet_level) * self.output[:, 1] + wet_level * delayed_right
-            
-    def save_audio(self, filename):
-        """音声ファイルとして保存"""
-        sf.write(filename, self.output, self.sample_rate)
-        print(f"音声ファイルを保存しました: {filename}")
-        print(f"ファイルサイズ: {len(self.output) * 2 * 2 / (1024*1024):.1f} MB")
-        print(f"演奏時間: {self.duration} 秒")
-        print(f"チャンネル数: 2 (ステレオ)")
-        
-    def create_visualization(self, filename):
-        """ビジュアライゼーションを作成"""
-        fig = plt.figure(figsize=(15, 12))
-        gs = GridSpec(4, 2, figure=fig, hspace=0.3, wspace=0.3)
-        
-        # 1. ステレオ波形
-        ax1 = fig.add_subplot(gs[0, :])
-        ax1.plot(self.time, self.output[:, 0], 'r-', linewidth=0.5, label='Left Channel')
-        ax1.plot(self.time, self.output[:, 1], 'b-', linewidth=0.5, label='Right Channel')
-        ax1.set_title('Deadlock Dance Advanced - Stereo Waveform', fontsize=14)
-        ax1.set_xlabel('Time (s)')
-        ax1.set_ylabel('Amplitude')
+        # デッドロックパターンの可視化
+        ax1 = axes[0]
+        for i in range(self.num_processes):
+            ax1.plot(time_array[:1000], deadlock_pattern[i, :1000], 
+                    label=f'Process {i}', alpha=0.7)
+        ax1.set_ylabel('Deadlock Intensity')
+        ax1.set_title('Deadlock Dance Advanced - Process Competition Patterns')
         ax1.legend()
         ax1.grid(True, alpha=0.3)
         
-        # 2. スペクトログラム（左チャンネル）
-        ax2 = fig.add_subplot(gs[1, 0])
-        f, t, Sxx = scipy.signal.spectrogram(self.output[:, 0], self.sample_rate, nperseg=1024)
-        im1 = ax2.pcolormesh(t, f/1000, 10 * np.log10(Sxx + 1e-10), shading='gouraud')
-        ax2.set_title('Spectrogram (Left Channel)', fontsize=12)
-        ax2.set_xlabel('Time (s)')
-        ax2.set_ylabel('Frequency (kHz)')
-        plt.colorbar(im1, ax=ax2, label='Power (dB)')
+        # スペクトログラム
+        ax2 = axes[1]
+        from scipy import signal
+        f, t, Sxx = signal.spectrogram(stereo_signal[0], self.sample_rate, 
+                                      nperseg=2048, noverlap=512)
+        im = ax2.pcolormesh(t, f, 10 * np.log10(Sxx + 1e-10), shading='gouraud')
+        ax2.set_ylabel('Frequency [Hz]')
+        ax2.set_title('Spectrogram - Deadlock Frequency Clashes')
+        plt.colorbar(im, ax=ax2, label='Power [dB]')
         
-        # 3. スペクトログラム（右チャンネル）
-        ax3 = fig.add_subplot(gs[1, 1])
-        f, t, Sxx = scipy.signal.spectrogram(self.output[:, 1], self.sample_rate, nperseg=1024)
-        im2 = ax3.pcolormesh(t, f/1000, 10 * np.log10(Sxx + 1e-10), shading='gouraud')
-        ax3.set_title('Spectrogram (Right Channel)', fontsize=12)
-        ax3.set_xlabel('Time (s)')
-        ax3.set_ylabel('Frequency (kHz)')
-        plt.colorbar(im2, ax=ax3, label='Power (dB)')
+        # 波形とエンベロープ
+        ax3 = axes[2]
+        ax3.plot(time_array[:5000], stereo_signal[0, :5000], 'b-', 
+                alpha=0.7, label='Left Channel')
+        ax3.plot(time_array[:5000], stereo_signal[1, :5000], 'r-', 
+                alpha=0.7, label='Right Channel')
+        ax3.set_xlabel('Time [s]')
+        ax3.set_ylabel('Amplitude')
+        ax3.set_title('Deadlock Dance Advanced - Waveform Output')
+        ax3.legend()
+        ax3.grid(True, alpha=0.3)
         
-        # 4. デッドロック検出パターン
-        ax4 = fig.add_subplot(gs[2, 0])
-        detection_pattern = [self.get_deadlock_detection_envelope(t) for t in self.time[::100]]
-        time_sparse = self.time[::100]
-        ax4.plot(time_sparse, detection_pattern, 'g-', linewidth=2)
-        ax4.set_title('Deadlock Detection Pattern', fontsize=12)
-        ax4.set_xlabel('Time (s)')
-        ax4.set_ylabel('Detection Level')
-        ax4.grid(True, alpha=0.3)
-        
-        # 5. リソース競合マップ
-        ax5 = fig.add_subplot(gs[2, 1])
-        # リソース競合の可視化
-        conflict_map = np.zeros((len(self.resources), int(self.duration)))
-        for i, res_name in enumerate(self.resources):
-            # 各リソースの競合時間帯を設定
-            if i < 3:  # 前半のリソース
-                start_time = 0.2 * self.duration
-                end_time = 0.7 * self.duration
-            else:  # 後半のリソース
-                start_time = 0.3 * self.duration
-                end_time = 0.8 * self.duration
-                
-            conflict_map[i, int(start_time):int(end_time)] = 1.0
-            
-        im5 = ax5.imshow(conflict_map, aspect='auto', cmap='Reds')
-        ax5.set_title('Resource Contention Map', fontsize=12)
-        ax5.set_xlabel('Time (s)')
-        ax5.set_ylabel('Resources')
-        ax5.set_yticks(range(len(self.resources)))
-        ax5.set_yticklabels(self.resources)
-        plt.colorbar(im5, ax=ax5, label='Contention Level')
-        
-        # 6. スペクトル重心の時間変化
-        ax6 = fig.add_subplot(gs[3, :])
-        # モノラルミックス
-        mono_signal = np.mean(self.output, axis=1)
-        
-        # 短時間フーリエ変換
-        frame_size = 2048
-        hop_size = 1024
-        spectral_centroids = []
-        
-        for i in range(0, len(mono_signal) - frame_size, hop_size):
-            frame = mono_signal[i:i+frame_size]
-            spectrum = np.abs(np.fft.fft(frame))
-            freqs = np.fft.fftfreq(frame_size, 1/self.sample_rate)
-            
-            # 正の周波数のみ
-            pos_mask = freqs > 0
-            spectrum = spectrum[pos_mask]
-            freqs = freqs[pos_mask]
-            
-            if np.sum(spectrum) > 0:
-                centroid = np.sum(spectrum * freqs) / np.sum(spectrum)
-                spectral_centroids.append(centroid)
-                
-        time_axis = np.arange(len(spectral_centroids)) * hop_size / self.sample_rate
-        ax6.plot(time_axis, spectral_centroids, 'purple', linewidth=2)
-        ax6.set_title('Spectral Centroid Evolution', fontsize=12)
-        ax6.set_xlabel('Time (s)')
-        ax6.set_ylabel('Spectral Centroid (Hz)')
-        ax6.grid(True, alpha=0.3)
-        
-        plt.suptitle('Deadlock Dance Advanced - Physical Modeling Analysis', 
-                     fontsize=16, y=0.98)
         plt.tight_layout()
-        plt.savefig(filename, dpi=300, bbox_inches='tight')
-        print(f"ビジュアライゼーションを保存しました: {filename}")
-        plt.close()
+        return fig
+    
+    def save_composition(self):
+        """
+        楽曲の保存とエクスポート
+        """
+        # 楽曲の生成
+        stereo_signal, time_array, deadlock_pattern = self.generate_composition()
+        
+        # 可視化の作成
+        fig = self.create_visualization(time_array, deadlock_pattern, stereo_signal)
+        
+        # 音声ファイルの保存
+        output_path = self.output_dir / "07_deadlock_dance_advanced.wav"
+        sf.write(output_path, stereo_signal.T, self.sample_rate)
+        print(f"Audio saved to: {output_path}")
+        
+        # 可視化の保存
+        viz_path = self.output_dir / "07_deadlock_dance_advanced_visualization.png"
+        fig.savefig(viz_path, dpi=150, bbox_inches='tight')
+        print(f"Visualization saved to: {viz_path}")
+        
+        # 可視化の表示
+        plt.show()
+        
+        return str(output_path), str(viz_path)
 
 def main():
-    """メイン実行関数"""
-    print("=" * 60)
-    print("Deadlock Dance Advanced - 物理モデリングによるデッドロックの音響表現")
-    print("=" * 60)
+    """
+    Deadlock Dance Advancedのメイン実行関数
+    """
+    # 作曲の実行
+    composer = DeadlockDanceAdvanced(duration=180)  # 3分
+    audio_path, viz_path = composer.save_composition()
     
-    # インスタンス作成
-    deadlock = DeadlockDanceAdvanced(duration=90, sample_rate=44100)
-    
-    # 音響合成
-    deadlock.compose()
-    
-    # 音声ファイル保存
-    audio_filename = "07_deadlock_dance_advanced.wav"
-    deadlock.save_audio(audio_filename)
-    
-    # ビジュアライゼーション作成
-    viz_filename = "07_deadlock_dance_advanced_visualization.png"
-    deadlock.create_visualization(viz_filename)
-    
-    # メタデータの表示
-    print("\n" + "=" * 60)
-    print("デッドロックダンス Advanced - メタデータ")
-    print("=" * 60)
-    print(f"トラック名: Deadlock Dance (Advanced)")
-    print(f"バージョン: Advanced v1.0")
-    print(f"技術: 物理モデリング、マルチスレッドシミュレーション")
-    print(f"演奏時間: {deadlock.duration} 秒")
-    print(f"サンプルレート: {deadlock.sample_rate} Hz")
-    print(f"チャンネル数: ステレオ")
-    print(f"ピーク振幅: {np.max(np.abs(deadlock.output)):.3f}")
-    print(f"ファイル名: {audio_filename}")
-    print(f"ビジュアライゼーション: {viz_filename}")
-    
-    print("\n" + "=" * 60)
-    print("技術的特徴:")
-    print("1. 弦の物理モデリングによるスレッド緊張状態の表現")
-    print("2. 衝突音響によるリソース競合の可聴化")
-    print("3. マルチスレッドデッドロックの時間発展シミュレーション")
-    print("4. 空間的残響効果による没入感の向上")
-    print("5. デッドロック検出パターンの音響化")
-    print("=" * 60)
-    
-    print("\n" + "=" * 60)
-    print("デッドロックダンス Advanced 生成完了！")
-    print("=" * 60)
+    print("\n" + "="*60)
+    print("Deadlock Dance Advanced - Generation Complete")
+    print("="*60)
+    print(f"Audio File: {audio_path}")
+    print(f"Visualization: {viz_path}")
+    print("\nTrack Details:")
+    print("- Title: Deadlock Dance Advanced")
+    print("- Duration: 3:00")
+    print("- Concept: Advanced physical modeling of system deadlock")
+    print("- Techniques: Coupled oscillators, multiband processing, spatialization")
+    print("- Status: Enhanced album expansion (Advanced version)")
+    print("="*60)
 
 if __name__ == "__main__":
     main()
