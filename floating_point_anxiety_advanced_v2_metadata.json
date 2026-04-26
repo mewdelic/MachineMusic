@@ -1,0 +1,21 @@
+{
+  "title": "Floating Point Anxiety Advanced v2",
+  "duration": 60.0,
+  "sample_rate": 48000,
+  "bit_depths_used": [
+    64,
+    32,
+    16,
+    8,
+    4
+  ],
+  "max_error": 0.25472791143208007,
+  "final_bit_depth": 4,
+  "techniques": [
+    "Granular synthesis",
+    "Progressive bit depth reduction",
+    "Floating point error simulation",
+    "Binaural spatialization",
+    "Multi-band compression"
+  ]
+}
