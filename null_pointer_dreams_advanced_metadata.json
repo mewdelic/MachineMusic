@@ -1,0 +1,19 @@
+{
+  "title": "Null Pointer Dreams Advanced",
+  "artist": "MachineMusic Project",
+  "album": "Error Garden (Advanced)",
+  "duration": 60,
+  "sample_rate": 48000,
+  "memory_size": 1024,
+  "null_probability": 0.3,
+  "fragmentation_rate": 0.15,
+  "spatial_range": 60.0,
+  "memory_stats": {
+    "empty_addresses": 715,
+    "valid_addresses": 217,
+    "freed_addresses": 72,
+    "null_addresses": 20
+  },
+  "generation_time": "2026-04-28T02:06:57.219457",
+  "technical_notes": "Advanced algorithm featuring memory access error simulation, 3D spatialization, and fragmentation effects"
+}
