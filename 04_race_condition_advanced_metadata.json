@@ -1,0 +1,19 @@
+{
+  "title": "Race Condition Advanced",
+  "album": "Error Garden (Advanced)",
+  "track_number": 4,
+  "duration": 60,
+  "sample_rate": 48000,
+  "creation_date": "2026-05-01T02:02:58.754917",
+  "technical_details": {
+    "num_threads": 8,
+    "shared_resource_size": 256,
+    "race_probability": 0.4,
+    "contention_level": 0.7,
+    "priority_inversion_probability": 0.15,
+    "critical_sections_count": 3915,
+    "base_frequency": 220.0,
+    "harmonic_complexity": 12
+  },
+  "description": "競合状態が生む偶然のハーモニーを高度に表現。マルチスレッドの非決定性を音楽化。"
+}
