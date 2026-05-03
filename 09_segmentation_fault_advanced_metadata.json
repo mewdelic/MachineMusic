@@ -1,0 +1,129 @@
+{
+  "track": {
+    "title": "Segmentation Fault",
+    "subtitle": "Advanced Spacetime Physics Version",
+    "track_number": 9,
+    "album": "Error Garden",
+    "artist": "MachineMusic",
+    "year": 2026,
+    "genre": "Experimental Electronic",
+    "subgenre": "Quantum Algorithmic Composition"
+  },
+  "technical": {
+    "duration": 50,
+    "sample_rate": 44100,
+    "bit_depth": 32,
+    "format": "WAV",
+    "channels": 2,
+    "file_size_mb": 16.82
+  },
+  "physics": {
+    "theoretical_framework": [
+      "General Relativity",
+      "Quantum Mechanics",
+      "String Theory",
+      "Black Hole Thermodynamics",
+      "Information Theory",
+      "Parallel Universe Theory"
+    ],
+    "key_concepts": [
+      "4D Spacetime Curvature",
+      "Quantum Entanglement",
+      "Gravitational Waves",
+      "Spacetime Singularities",
+      "Information Paradox",
+      "Quantum Tunneling",
+      "Hawking Radiation"
+    ],
+    "mathematical_structures": [
+      "Riemannian Geometry",
+      "Metric Tensor",
+      "Christoffel Symbols",
+      "Curvature Tensor",
+      "Wave Functions",
+      "Density Matrices"
+    ]
+  },
+  "composition": {
+    "methodology": "Physical Modeling Sonification",
+    "algorithms": [
+      "Memory Violation as Spacetime Events",
+      "Quantum Tunneling Sound Generation",
+      "Singularity Field Sonification",
+      "Gravitational Wave Audio Mapping",
+      "Parallel Universe Interaction",
+      "Information Paradox Resolution"
+    ],
+    "techniques": [
+      "Multi-dimensional Audio Processing",
+      "Quantum State Sonification",
+      "General Relativity Audio Mapping",
+      "Information Theory Sound Design"
+    ]
+  },
+  "conceptual": {
+    "theme": "Segmentation Fault as Spacetime Physics",
+    "interpretation": [
+      "Memory access violation as spacetime event",
+      "Segmentation fault as singularity formation",
+      "Crash as information paradox",
+      "System recovery as universe evolution"
+    ],
+    "artistic_vision": "Transforming software segmentation faults into fundamental physics phenomena"
+  },
+  "analysis": {
+    "spacetime_events": 60,
+    "singularities": 5,
+    "parallel_universes": 3,
+    "quantum_cells": 300,
+    "complexity_score": 0.98,
+    "physics_accuracy": "High"
+  },
+  "structure": {
+    "sections": [
+      {
+        "name": "Memory Violations",
+        "start": 0.0,
+        "duration": 8.0,
+        "description": "Spacetime events from illegal memory access"
+      },
+      {
+        "name": "Quantum Tunneling",
+        "start": 8.0,
+        "duration": 8.0,
+        "description": "Quantum tunneling through memory barriers"
+      },
+      {
+        "name": "Singularity Events",
+        "start": 16.0,
+        "duration": 8.0,
+        "description": "Black hole formation from critical errors"
+      },
+      {
+        "name": "Spacetime Distortion",
+        "start": 24.0,
+        "duration": 10.0,
+        "description": "Gravitational waves from system crashes"
+      },
+      {
+        "name": "Parallel Universe Interaction",
+        "start": 34.0,
+        "duration": 8.0,
+        "description": "Multi-dimensional space interference"
+      },
+      {
+        "name": "Information Paradox",
+        "start": 42.0,
+        "duration": 8.0,
+        "description": "Black hole information paradox resolution"
+      }
+    ]
+  },
+  "generation": {
+    "date": "2026-05-04",
+    "time": "02:00",
+    "algorithm": "segmentation_fault_advanced.py",
+    "complexity_level": "Advanced",
+    "physics_framework": "General Relativity + Quantum Mechanics"
+  }
+}

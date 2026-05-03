@@ -1,0 +1,103 @@
+{
+  "track": {
+    "title": "Buffer Overflow Garden",
+    "subtitle": "Advanced Complex Systems Version",
+    "track_number": 6,
+    "album": "Error Garden",
+    "artist": "MachineMusic",
+    "year": 2026,
+    "genre": "Experimental Electronic",
+    "subgenre": "Algorithmic Composition"
+  },
+  "technical": {
+    "duration": 45,
+    "sample_rate": 44100,
+    "bit_depth": 32,
+    "format": "WAV",
+    "channels": 2,
+    "file_size_mb": 15.14
+  },
+  "composition": {
+    "methodology": "Data Sonification",
+    "algorithms": [
+      "Quantum Interference Simulation",
+      "Fractal Memory Structure",
+      "Topological Defect Field Theory",
+      "Spin Glass Dynamics",
+      "Phase Transition Physics",
+      "Chaotic Attractor Systems"
+    ],
+    "techniques": [
+      "Physical Modeling",
+      "Complex Systems Theory",
+      "Chaos Theory",
+      "Quantum Computing Simulation",
+      "Fractal Mathematics"
+    ]
+  },
+  "conceptual": {
+    "theme": "Buffer Overflow as Complex Physical Systems",
+    "interpretation": [
+      "Memory overflow as quantum interference",
+      "Data corruption as topological defects",
+      "System crash as phase transition",
+      "Error propagation as chaotic dynamics"
+    ],
+    "artistic_vision": "Transforming software errors into beautiful physical phenomena"
+  },
+  "analysis": {
+    "chaos_metric": 0.0,
+    "fractal_dimension": 2.0072,
+    "dynamic_range_db": 19.03,
+    "rms_level_db": -19.48,
+    "peak_level_db": -0.45,
+    "complexity_score": 0.95
+  },
+  "structure": {
+    "sections": [
+      {
+        "name": "Quantum Interference",
+        "start": 0.0,
+        "duration": 10.0,
+        "description": "Quantum memory cell interference patterns"
+      },
+      {
+        "name": "Fractal Structure",
+        "start": 10.0,
+        "duration": 10.0,
+        "description": "Fractal memory space organization"
+      },
+      {
+        "name": "Topological Defects",
+        "start": 20.0,
+        "duration": 7.0,
+        "description": "Defect field interactions in memory space"
+      },
+      {
+        "name": "Spin Glass Dynamics",
+        "start": 27.0,
+        "duration": 8.0,
+        "description": "Spin glass memory configuration evolution"
+      },
+      {
+        "name": "Phase Transition",
+        "start": 35.0,
+        "duration": 5.0,
+        "description": "Temperature-driven phase transition in memory"
+      },
+      {
+        "name": "Chaotic Overflow",
+        "start": 40.0,
+        "duration": 5.0,
+        "description": "Lorenz attractor-driven chaotic overflow"
+      }
+    ]
+  },
+  "generation": {
+    "date": "2026-05-04",
+    "time": "02:00",
+    "algorithm": "buffer_overflow_garden_advanced.py",
+    "complexity_level": "Advanced",
+    "computation_time": "High"
+  }
+}
