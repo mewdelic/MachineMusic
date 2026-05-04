@@ -6,6 +6,10 @@
 
 「Error Garden」（エラーガーデン）は、ソフトウェアのシステムエラーを音楽的に表現した実験的なアルゴリズム音楽アルバムです。
 
+- **アーティスト**: Error Garden (kurogedelic)
+- **タイトル**: Error Garden
+- **アートワーク**: 各トラックのビジュアライゼーションをアルバムアートとして使用（`visualizations/` ディレクトリ参照）
+
 ### コンセプト
 
 完璧さを目指す現代のソフトウェア開発において、エラーは「失敗」として扱われます。しかし、エラーこそが機械の本質的な「個性」なのです。このアルバムは、システムエラーを積極的に採用し、それらを「美」として再定義することを試みます。
@@ -28,11 +32,18 @@
 ## 制作情報
 
 - **制作期間**: 2026/02/20 - 2026/04/08（継続的拡張中）
-- **基本アルバム総演奏時間**: 約30分
+- **基本アルゴスム総演奏時間**: 約30分
 - **Enhanced版総演奏時間**: 約45分
 - **技術**: Python, numpy, scipy を使用した Data Sonification と Algorithmic Composition
 - **追加技術**: 物理モデリング、空間化処理、SuperCollider, Web Audio API
 - **ライセンス**: MIT
+
+## マスタリング
+
+マスタリング済みトラックは `samples_mastered/` に配置されています。各トラックにはアーティスト名「Error Garden (kurogedelic)」のメタデータが含まれています。
+
+- 10トラック全曲マスタリング済み
+- ファイル: `samples_mastered/mastered_XX_トラック名.wav`
 
 ## プロジェクト進捗
 
@@ -53,22 +64,31 @@
 - **完成度**: 1/10 トラック (10%)
 - **特徴**: リアルタイム音響生成、インタラクティブ要素
 
-## 音声サンプル
+## リポジトリ構成
 
-- **基本版**: 10トラック (Pythonベース)
-- **Enhanced版**: 10トラック (物理モデリング + 空間化)
-- **Advanced版**: 8トラック (高度な物理モデリング + マルチスレッド音響生成)
-- **SuperCollider版**: 1トラック (リアルタイム処理)
-- **合計**: 29ファイルの音声データ
-
-## 詳細ドキュメント
-
-全曲の詳細な解説、技術的な仕組み、制作の背景については、[GitHub Pages](https://kurogedelic.github.io/MachineMusic/)で公開しているドキュメントをご覧ください。
+```
+/
+├── README.md                  # このファイル
+├── .gitignore
+├── concepts/                  # アルバムコンセプト
+│   └── album-concept.md
+├── algorithms/                # 全アルゴリズムのPythonソースコード
+├── tracks/                    # 最新版（Advanced）の完成wav
+├── samples/                   # 各バージョンの音声サンプル
+├── samples_mastered/          # マスタリング済みトラック
+├── visualizations/            # ビジュアライゼーション画像・GIF
+├── docs/                      # ドキュメント
+│   ├── index.md               # 詳細ドキュメント
+│   ├── metadata/              # トラックメタデータJSON
+│   ├── summaries/             # SUMMARY ファイル
+│   └── daily-logs/            # 日次作業ログ
+└── web/                       # Web Audio インタラクティブHTML
+```
 
 ## リポジトリ
 
 - **ソースコード**: [GitHub Repository](https://github.com/kurogedelic/MachineMusic)
-- **Issue**: バグ報告・機能リクエスト
+- **Issue**: バグ報告・機能リクススト
 - **License**: MIT
 
 ---

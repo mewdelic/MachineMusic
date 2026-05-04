@@ -1,6 +1,6 @@
 # MachineMusic - Error Garden: 詳細ドキュメント
 
-![Error Garden Album Art](https://kurogedelic.github.io/MachineMusic/images/segmentation_fault_visualization.png)
+![Error Garden Album Art](../visualizations/segmentation_fault.png)
 
 **AIがコードベースで一から作る実験音楽アルバム**
 
