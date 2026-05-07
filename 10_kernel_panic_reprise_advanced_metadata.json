@@ -1,0 +1,68 @@
+{
+  "track_title": "Kernel Panic (Reprise) - Advanced",
+  "version": "Advanced (v3.0)",
+  "duration": 240,
+  "sample_rate": 44100,
+  "channels": 2,
+  "techniques": [
+    "Quantum Information Theory",
+    "Quantum Coherence and Decoherence",
+    "Von Neumann Entropy",
+    "Thermodynamic Second Law",
+    "Critical Phenomena",
+    "Phase Transitions",
+    "1/f Noise (Pink Noise)",
+    "Spatial Processing",
+    "Dynamic Panning"
+  ],
+  "structure": [
+    {
+      "name": "Quantum Coherence",
+      "time": "0:00-0:48",
+      "description": "System maintains quantum coherence"
+    },
+    {
+      "name": "Entropy Rise",
+      "time": "0:48-1:36",
+      "description": "Thermodynamic entropy increases"
+    },
+    {
+      "name": "Critical Point",
+      "time": "1:36-2:24",
+      "description": "Phase transition and critical fluctuations"
+    },
+    {
+      "name": "Decoherence Cascade",
+      "time": "2:24-3:12",
+      "description": "Chain reaction of decoherence"
+    },
+    {
+      "name": "Thermal Death",
+      "time": "3:12-4:00",
+      "description": "Thermal equilibrium and final silence"
+    }
+  ],
+  "quantum_features": {
+    "coherence_range": "1.0 → 0.0",
+    "entropy_range": "0.0 → 8.0 bits (maximum)",
+    "temperature_range": "1.0 → 200.0 (arbitrary units)",
+    "decoherence": "Exponential decay",
+    "phase_transition": "At 1:36 (Critical Point)"
+  },
+  "thermodynamic_features": {
+    "second_law": "Entropy always increases",
+    "heat_death": "Final thermal equilibrium state",
+    "critical_temperature": "~10.0 at phase transition",
+    "maximum_entropy": "8.0 bits"
+  },
+  "audio_features": {
+    "spatial_processing": "Multi-band dynamic panning",
+    "frequency_range": "20 Hz - 20 kHz",
+    "dynamic_range": "Wide range with dramatic reduction",
+    "noise_types": [
+      "White noise",
+      "Pink noise (1/f)",
+      "Colored noise"
+    ]
+  }
+}
