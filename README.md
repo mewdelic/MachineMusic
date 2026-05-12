@@ -62,9 +62,9 @@
 - **特徴**: より高度な物理モデリング、リアルタイム処理、量子情報理論、熱力学
 
 ### SuperCollider版（実験的実装）
-- **完成度**: 4/10 トラック (40%)
+- **完成度**: 5/10 トラック (50%)
 - **特徴**: リアルタイム音響生成、インタラクティブ要素
-- **完了トラック**: Stack Overflow, Race Condition, Floating Point Anxiety, Null Pointer Dreams
+- **完了トラック**: Stack Overflow, Race Condition, Floating Point Anxiety, Null Pointer Dreams, Memory Leak Lullaby
 
 ## リポジトリ構成
 
